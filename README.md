@@ -1,2 +1,2 @@
 files:
-- (java basics)[.java_basics.md]
+- [java basics](./java_basics.md)
