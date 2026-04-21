@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DSA Study Guides</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d0d0f;
+    --surface: #16161a;
+    --border: rgba(255,255,255,0.07);
+    --border-hover: rgba(255,255,255,0.18);
+    --text-primary: #f0ede8;
+    --text-secondary: #888;
+    --text-muted: #444;
+    --accent: #c8f542;
+    --accent-dim: rgba(200, 245, 66, 0.08);
+    --accent-dim-hover: rgba(200, 245, 66, 0.14);
+    --tag-bg: rgba(255,255,255,0.05);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Glow blob */
+  body::after {
+    content: '';
+    position: fixed;
+    top: -200px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 700px;
+    height: 500px;
+    background: radial-gradient(ellipse, rgba(200,245,66,0.07) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 80px 24px 120px;
+  }
+
+  /* Header */
+  .eyebrow {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: .14em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    opacity: 0;
+    animation: fadeUp .5s .1s ease forwards;
+  }
+
+  h1 {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(36px, 6vw, 58px);
+    font-weight: 400;
+    line-height: 1.1;
+    letter-spacing: -.01em;
+    color: var(--text-primary);
+    margin-bottom: 18px;
+    opacity: 0;
+    animation: fadeUp .5s .2s ease forwards;
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .subtitle {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    max-width: 480px;
+    margin-bottom: 64px;
+    opacity: 0;
+    animation: fadeUp .5s .3s ease forwards;
+  }
+
+  /* Section label */
+  .section-label {
+    font-size: 10px;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+    opacity: 0;
+    animation: fadeUp .5s .4s ease forwards;
+  }
+
+  /* Guide card */
+  .guides { display: flex; flex-direction: column; gap: 1px; }
+
+  .guide-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 28px 32px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 0;
+    text-decoration: none;
+    color: inherit;
+    transition: background .2s, border-color .2s;
+    opacity: 0;
+    animation: fadeUp .5s ease forwards;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .guide-card:first-child { border-radius: 12px 12px 0 0; }
+  .guide-card:last-child { border-radius: 0 0 12px 12px; }
+  .guide-card:only-child { border-radius: 12px; }
+
+  .guide-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--accent);
+    opacity: 0;
+    transition: opacity .2s;
+  }
+
+  .guide-card:hover {
+    background: var(--accent-dim-hover);
+    border-color: var(--border-hover);
+  }
+
+  .guide-card:hover::before { opacity: 1; }
+
+  .guide-card:nth-child(1) { animation-delay: .45s; }
+  .guide-card:nth-child(2) { animation-delay: .52s; }
+  .guide-card:nth-child(3) { animation-delay: .59s; }
+
+  .card-left { flex: 1; min-width: 0; }
+
+  .card-meta {
+    font-size: 10px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  .card-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: 22px;
+    font-weight: 400;
+    color: var(--text-primary);
+    margin-bottom: 10px;
+    transition: color .2s;
+  }
+
+  .guide-card:hover .card-title { color: var(--accent); }
+
+  .card-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  .tag {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 4px;
+    background: var(--tag-bg);
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+  }
+
+  .card-arrow {
+    font-size: 20px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+    transition: color .2s, transform .2s;
+  }
+
+  .guide-card:hover .card-arrow {
+    color: var(--accent);
+    transform: translateX(4px);
+  }
+
+  /* Coming soon card */
+  .guide-card.soon {
+    cursor: default;
+    opacity: 0;
+    animation: fadeUp .5s .52s ease forwards;
+  }
+
+  .guide-card.soon:hover {
+    background: var(--surface);
+    border-color: var(--border);
+  }
+
+  .guide-card.soon::before { display: none; }
+  .guide-card.soon .card-title { color: var(--text-muted); }
+  .guide-card.soon:hover .card-title { color: var(--text-muted); }
+  .guide-card.soon .card-arrow { display: none; }
+
+  .soon-badge {
+    font-size: 10px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px dashed var(--text-muted);
+    flex-shrink: 0;
+  }
+
+  /* Footer */
+  .footer {
+    margin-top: 80px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--text-muted);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    opacity: 0;
+    animation: fadeUp .5s .7s ease forwards;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 500px) {
+    .container { padding: 48px 16px 80px; }
+    .guide-card { padding: 20px 20px; }
+    .card-title { font-size: 18px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <p class="eyebrow">DSA Study Guides</p>
+
+  <h1>Master the patterns,<br>not just the <em>problems.</em></h1>
+
+  <p class="subtitle">
+    Interactive guides for learning algorithmic patterns. Step through examples, see the logic in motion, and build the intuition to solve problems in interviews.
+  </p>
+
+  <p class="section-label">Available guides</p>
+
+  <div class="guides">
+
+    <a href="two_pointers_pattern_guide.html" class="guide-card">
+      <div class="card-left">
+        <div class="card-meta">Pattern 01</div>
+        <div class="card-title">Two Pointers</div>
+        <div class="card-tags">
+          <span class="tag">Opposite ends</span>
+          <span class="tag">Slow / fast</span>
+          <span class="tag">O(1) space</span>
+          <span class="tag">Interactive demos</span>
+        </div>
+      </div>
+      <div class="card-arrow">→</div>
+    </a>
+
+    <div class="guide-card soon">
+      <div class="card-left">
+        <div class="card-meta">Pattern 02</div>
+        <div class="card-title">Sliding Window</div>
+        <div class="card-tags">
+          <span class="tag">Variable window</span>
+          <span class="tag">Fixed window</span>
+        </div>
+      </div>
+      <span class="soon-badge">Coming soon</span>
+    </div>
+
+    <div class="guide-card soon">
+      <div class="card-left">
+        <div class="card-meta">Pattern 03</div>
+        <div class="card-title">Binary Search</div>
+        <div class="card-tags">
+          <span class="tag">Classic</span>
+          <span class="tag">On answer</span>
+        </div>
+      </div>
+      <span class="soon-badge">Coming soon</span>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    <span>Built for interview prep</span>
+    <span>Open each guide → step through → understand</span>
+  </div>
+
+</div>
+</body>
+</html>
