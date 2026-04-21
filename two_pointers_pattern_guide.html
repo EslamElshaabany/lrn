@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Two Pointers Pattern Guide</title>
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; padding: 16px; font-family: system-ui, sans-serif; background: #fff; color: #1a1a1a; }
+@media (prefers-color-scheme: dark) { body { background: #1a1a1a; color: #e0e0e0; } }
+.tab-bar { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+.tab { padding: 6px 14px; border-radius: 8px; border: 0.5px solid #ccc; background: transparent; cursor: pointer; font-size: 13px; color: #666; transition: all .2s; }
+.tab.active { background: #f0f0f0; color: #1a1a1a; border-color: #888; font-weight: 500; }
+@media (prefers-color-scheme: dark) { .tab { border-color: #444; color: #aaa; } .tab.active { background: #2a2a2a; color: #e0e0e0; border-color: #888; } }
+.panel { display: none; }
+.panel.active { display: block; }
+.section-label { font-size: 11px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: #999; margin: 0 0 10px; }
+.card { background: #fff; border: 0.5px solid #e0e0e0; border-radius: 12px; padding: 16px 20px; margin-bottom: 14px; }
+@media (prefers-color-scheme: dark) { .card { background: #222; border-color: #333; } }
+.card-title { font-size: 14px; font-weight: 500; margin: 0 0 6px; }
+.card-body { font-size: 13px; color: #666; line-height: 1.6; }
+@media (prefers-color-scheme: dark) { .card-body { color: #aaa; } }
+.array-row { display: flex; gap: 6px; align-items: flex-end; flex-wrap: wrap; margin: 14px 0; }
+.cell { width: 40px; height: 40px; border: 1.5px solid #ccc; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 500; transition: all .3s; position: relative; flex-shrink: 0; }
+.cell.left-ptr { background: #E6F1FB; border-color: #378ADD; color: #042C53; }
+.cell.right-ptr { background: #FAECE7; border-color: #D85A30; color: #4A1B0C; }
+.cell.match { background: #EAF3DE; border-color: #639922; color: #173404; }
+.cell.skip { opacity: .3; }
+.ptr-label { font-size: 10px; font-weight: 500; text-align: center; margin-top: 3px; color: #999; }
+.ptr-wrap { display: flex; flex-direction: column; align-items: center; }
+.btn { padding: 7px 16px; border-radius: 8px; border: 0.5px solid #ccc; background: transparent; cursor: pointer; font-size: 13px; transition: all .15s; }
+.btn:hover { background: #f0f0f0; }
+@media (prefers-color-scheme: dark) { .btn { border-color: #444; color: #e0e0e0; } .btn:hover { background: #2a2a2a; } }
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
+.status { font-size: 13px; color: #666; min-height: 20px; margin: 6px 0; }
+.badge { display: inline-block; font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 20px; }
+.badge-blue { background: #E6F1FB; color: #0C447C; }
+.badge-coral { background: #FAECE7; color: #993C1D; }
+.badge-green { background: #EAF3DE; color: #3B6D11; }
+.badge-amber { background: #FAEEDA; color: #854F0B; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 500px) { .two-col { grid-template-columns: 1fr; } }
+.step-box { background: #f5f5f5; border-radius: 8px; padding: 12px 14px; font-size: 13px; color: #666; line-height: 1.6; border-left: 3px solid #ccc; }
+@media (prefers-color-scheme: dark) { .step-box { background: #252525; color: #aaa; } }
+.step-box.info { border-left-color: #378ADD; }
+.step-box.warn { border-left-color: #EF9F27; }
+.step-box.good { border-left-color: #639922; }
+.problem-tag { display: inline-block; font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 20px; margin: 2px; background: #f5f5f5; color: #666; border: 0.5px solid #e0e0e0; }
+@media (prefers-color-scheme: dark) { .problem-tag { background: #2a2a2a; color: #aaa; border-color: #333; } }
+table.cmp { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.cmp th { text-align: left; color: #999; font-weight: 500; font-size: 11px; letter-spacing: .05em; text-transform: uppercase; padding: 0 10px 8px 0; }
+table.cmp td { padding: 7px 10px 7px 0; vertical-align: top; border-top: 0.5px solid #e0e0e0; color: #666; line-height: 1.5; }
+@media (prefers-color-scheme: dark) { table.cmp td { border-color: #333; color: #aaa; } }
+table.cmp td:first-child { font-weight: 500; color: #1a1a1a; white-space: nowrap; }
+@media (prefers-color-scheme: dark) { table.cmp td:first-child { color: #e0e0e0; } }
+.highlight { color: #1a1a1a; font-weight: 500; }
+@media (prefers-color-scheme: dark) { .highlight { color: #e0e0e0; } }
+</style>
+</head>
+<body>
+<div style="padding: 4px 0 0;">
+  <div class="tab-bar">
+    <button class="tab active" onclick="showTab('model')">The mental model</button>
+    <button class="tab" onclick="showTab('opposite')">Opposite ends</button>
+    <button class="tab" onclick="showTab('same')">Same direction</button>
+    <button class="tab" onclick="showTab('vs-stack')">vs Stack</button>
+    <button class="tab" onclick="showTab('recognize')">How to recognize</button>
+  </div>
+
+  <!-- MENTAL MODEL -->
+  <div id="panel-model" class="panel active">
+    <div class="card">
+      <div class="card-title">The core idea</div>
+      <div class="card-body">Two pointers = <span class="highlight">two indices scanning a sequence</span>, moved strategically so you avoid brute-force nested loops. Instead of O(n²) "try every pair", you use structure (sorted order, a target sum, symmetry) to decide which pointer to move — giving you <span class="highlight">O(n)</span>.</div>
+    </div>
+    <p class="section-label">Two flavours</p>
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">↔ Opposite ends</div>
+        <div class="card-body" style="margin-bottom:10px;">Start one pointer at each end. Move them toward each other until they meet.<br><br><span class="badge badge-blue">left</span> starts at 0, <span class="badge badge-coral">right</span> starts at end.</div>
+        <div class="problem-tag">Palindrome check</div>
+        <div class="problem-tag">Two-sum (sorted)</div>
+        <div class="problem-tag">Sorted squares</div>
+        <div class="problem-tag">Container with water</div>
+      </div>
+      <div class="card">
+        <div class="card-title">→ Same direction (slow/fast)</div>
+        <div class="card-body" style="margin-bottom:10px;">Both start at 0. <span class="badge badge-blue">slow</span> tracks where to write, <span class="badge badge-coral">fast</span> scans ahead.<br><br>Sometimes called "read/write" or "insert index".</div>
+        <div class="problem-tag">Move zeroes</div>
+        <div class="problem-tag">Remove duplicates</div>
+        <div class="problem-tag">Remove element</div>
+        <div class="problem-tag">Backspace compare</div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:4px;">
+      <div class="card-title">The key question to ask yourself</div>
+      <div class="card-body">
+        <b style="color:inherit">"After I look at this position, can I eliminate one side completely?"</b><br><br>
+        If yes → two pointers. The structure (sorted array, symmetry, a known target) tells you which pointer to move without checking everything else.
+      </div>
+    </div>
+  </div>
+
+  <!-- OPPOSITE ENDS -->
+  <div id="panel-opposite" class="panel">
+    <div class="card">
+      <div class="card-title">Pattern: start at both ends, shrink inward</div>
+      <div class="card-body">Works when the array has symmetry or when moving a pointer in one direction <span class="highlight">provably</span> can't hurt you. The insight: if the current pair doesn't satisfy the condition, move the pointer that gives you the best chance of fixing it.</div>
+    </div>
+    <p class="section-label">Interactive — palindrome check</p>
+    <div id="demo-palindrome">
+      <div class="array-row" id="pal-row"></div>
+      <div class="status" id="pal-status">Press step to begin</div>
+      <div class="btn-row">
+        <button class="btn" onclick="palStep()">Step →</button>
+        <button class="btn" onclick="palReset()">Reset</button>
+      </div>
+    </div>
+    <p class="section-label">Interactive — sorted squares</p>
+    <div id="demo-squares">
+      <div class="array-row" id="sq-row"></div>
+      <div class="status" id="sq-status">Input is sorted. After squaring, largest values are at both ends.</div>
+      <div class="btn-row">
+        <button class="btn" onclick="sqStep()">Step →</button>
+        <button class="btn" onclick="sqReset()">Reset</button>
+      </div>
+    </div>
+    <div class="step-box info" style="margin-top:14px;">
+      <b>Decision rule (opposite ends):</b><br>
+      Move the pointer whose value is <b>less useful</b> to keep — e.g. in palindrome: always move both if match, return false if mismatch. In sorted squares: always take the larger absolute value from whichever end it's on.
+    </div>
+  </div>
+
+  <!-- SAME DIRECTION -->
+  <div id="panel-same" class="panel">
+    <div class="card">
+      <div class="card-title">Pattern: fast scans, slow writes</div>
+      <div class="card-body"><span class="badge badge-coral">fast</span> reads every element. <span class="badge badge-blue">slow</span> (insert index) only advances when fast finds something worth keeping. This in-place filters/reorders without extra space.</div>
+    </div>
+    <p class="section-label">Interactive — move zeroes</p>
+    <div id="demo-zeros">
+      <div class="array-row" id="z-row"></div>
+      <div class="status" id="z-status">slow = insert index. fast finds non-zero values and swaps them to slow's position.</div>
+      <div class="btn-row">
+        <button class="btn" onclick="zStep()">Step →</button>
+        <button class="btn" onclick="zReset()">Reset</button>
+      </div>
+    </div>
+    <div class="step-box info" style="margin-top:14px;">
+      <b>Decision rule (same direction):</b><br>
+      <b>fast</b> always moves every step. <b>slow</b> only moves when fast finds a valid element (non-zero, non-duplicate, real character). Swap or copy fast→slow when valid. After the loop, slow is the new length.
+    </div>
+    <p class="section-label" style="margin-top:16px;">Backspace compare — two simultaneous same-direction (from the right)</p>
+    <div class="step-box warn">
+      This one runs <b>two</b> independent "find next valid" scans, one per string, both moving right-to-left. The skip counter acts as a virtual stack — it counts pending backspaces without needing an actual stack data structure. This is why it beats the stack solution in space.
+    </div>
+  </div>
+
+  <!-- VS STACK -->
+  <div id="panel-vs-stack" class="panel">
+    <div class="card">
+      <div class="card-title">Yes — stack often works too. But here's the tradeoff.</div>
+      <div class="card-body">For the problems you solved, stack is a valid alternative. In interviews, you should know <b>both</b> — and know when to choose which.</div>
+    </div>
+    <table class="cmp">
+      <tr><th></th><th>Stack</th><th>Two Pointers</th></tr>
+      <tr><td>Palindrome</td><td>O(n) space — push half, pop and compare</td><td>O(1) space — left/right inward</td></tr>
+      <tr><td>Backspace compare</td><td>O(n) space — build final strings</td><td>O(1) space — skip counter from end</td></tr>
+      <tr><td>Move zeroes</td><td>Stack doesn't help here</td><td>O(1) — in-place swap</td></tr>
+      <tr><td>Sorted squares</td><td>Stack doesn't apply</td><td>O(n) — fill output from ends</td></tr>
+    </table>
+    <div class="step-box good" style="margin-top:16px;">
+      <b>Interview strategy:</b><br>
+      Start with the stack solution — it's easier to explain and code correctly under pressure. Then say: <em>"If we care about O(1) space, we can do this with two pointers instead…"</em> and explain the approach. That shows depth without risking a buggy implementation.
+    </div>
+    <div class="card" style="margin-top:14px;">
+      <div class="card-title">When stack beats two pointers</div>
+      <div class="card-body">Stack wins when you need to <b>remember past decisions</b> (e.g. valid parentheses, min stack, largest rectangle in histogram). Two pointers only work when the array's structure lets you <b>eliminate</b> positions without needing history.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">When two pointers beats stack</div>
+      <div class="card-body">Whenever O(1) space is required. Or when the interviewer says "can you do better on space?" after your stack solution. Two pointers is almost always the follow-up.</div>
+    </div>
+  </div>
+
+  <!-- RECOGNIZE -->
+  <div id="panel-recognize" class="panel">
+    <div class="card">
+      <div class="card-title">How to recognize a two-pointer problem in an interview</div>
+      <div class="card-body">Ask yourself these three questions when you see an array/string problem:</div>
+    </div>
+    <div class="step-box info" style="margin-bottom:10px;">
+      <b>1. Is the input sorted, or does it have symmetric structure?</b><br>
+      Sorted array → probably opposite-ends. Palindrome / bracket matching → symmetric → opposite-ends.
+    </div>
+    <div class="step-box info" style="margin-bottom:10px;">
+      <b>2. Am I filtering, partitioning, or removing in place?</b><br>
+      "Remove all X", "move zeroes to end", "deduplicate sorted array" → same-direction (slow/fast).
+    </div>
+    <div class="step-box info" style="margin-bottom:10px;">
+      <b>3. Is there a target value I'm converging on?</b><br>
+      "Find two numbers that sum to target" in sorted array → opposite-ends: too big → move right left, too small → move left right.
+    </div>
+    <p class="section-label" style="margin-top:16px;">Problem → pattern cheat sheet</p>
+    <table class="cmp">
+      <tr><th>Problem type</th><th>Variant</th><th>Key insight</th></tr>
+      <tr><td>Palindrome / reverse compare</td><td>Opposite ends</td><td>Characters must match symmetrically</td></tr>
+      <tr><td>Two-sum in sorted array</td><td>Opposite ends</td><td>Sum too big → move right, too small → move left</td></tr>
+      <tr><td>Sorted squares / container water</td><td>Opposite ends</td><td>Max value is always at one of the two ends</td></tr>
+      <tr><td>Move zeroes / remove element</td><td>Same direction</td><td>Write valid elements to slow pointer position</td></tr>
+      <tr><td>Backspace compare</td><td>Same direction (right-to-left)</td><td>Process deletions before comparing</td></tr>
+      <tr><td>Sliding window (subarray)</td><td>Same direction (window)</td><td>Expand right, shrink left on condition</td></tr>
+    </table>
+    <div class="step-box good" style="margin-top:16px;">
+      <b>Visualization trick that helps in interviews:</b><br>
+      Before writing any code, draw the array on paper and physically mark L and R. Walk through 2–3 steps by hand. Ask: "when do I move L? when do I move R? when do I stop?" — once you can answer those three, the code writes itself.
+    </div>
+  </div>
+</div>
+
+<script>
+function showTab(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+const palStr = "racecar";
+let palL = 0, palR = palStr.length - 1, palDone = false;
+function palRender(highlight, result) {
+  const row = document.getElementById('pal-row');
+  row.innerHTML = '';
+  for (let i = 0; i < palStr.length; i++) {
+    const wrap = document.createElement('div');
+    wrap.className = 'ptr-wrap';
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    cell.textContent = palStr[i];
+    if (!palDone && i === palL && i === palR) cell.className = 'cell match';
+    else if (!palDone && i === palL) cell.className = 'cell left-ptr';
+    else if (!palDone && i === palR) cell.className = 'cell right-ptr';
+    else if (palDone && result) cell.className = 'cell match';
+    const lbl = document.createElement('div');
+    lbl.className = 'ptr-label';
+    if (!palDone && i === palL && i === palR) lbl.textContent = 'L=R';
+    else if (!palDone && i === palL) lbl.textContent = 'L';
+    else if (!palDone && i === palR) lbl.textContent = 'R';
+    wrap.appendChild(cell); wrap.appendChild(lbl); row.appendChild(wrap);
+  }
+}
+function palStep() {
+  if (palDone) { palReset(); return; }
+  const s = document.getElementById('pal-status');
+  if (palL >= palR) {
+    palDone = true; palRender(false, true);
+    s.innerHTML = '<span style="color:#3B6D11">✓ Palindrome! L and R crossed — all pairs matched.</span>'; return;
+  }
+  if (palStr[palL] !== palStr[palR]) {
+    palDone = true;
+    s.innerHTML = '<span style="color:#993C1D">✗ Not a palindrome: "' + palStr[palL] + '" ≠ "' + palStr[palR] + '"</span>';
+    palRender(false, false); return;
+  }
+  s.innerHTML = '"' + palStr[palL] + '" == "' + palStr[palR] + '" ✓ — move L right, R left';
+  palL++; palR--; palRender(true, false);
+}
+function palReset() { palL=0; palR=palStr.length-1; palDone=false; palRender(false,false); document.getElementById('pal-status').textContent='Press step to begin'; }
+palReset();
+
+const sqArr = [-4,-1,0,3,10];
+const sqSq = sqArr.map(x => x*x);
+let sqL=0, sqR=sqSq.length-1, sqOut=[], sqDone=false;
+function sqRender() {
+  const row = document.getElementById('sq-row');
+  row.innerHTML = '';
+  for (let i=0; i<sqSq.length; i++) {
+    const wrap = document.createElement('div'); wrap.className='ptr-wrap';
+    const cell = document.createElement('div');
+    let cls = 'cell';
+    if (!sqDone && i===sqL && i===sqR) cls+=' match';
+    else if (!sqDone && i===sqL) cls+=' left-ptr';
+    else if (!sqDone && i===sqR) cls+=' right-ptr';
+    else if (sqDone) cls+=' match';
+    else cls+=' skip';
+    cell.className=cls; cell.textContent=sqSq[i];
+    const lbl=document.createElement('div'); lbl.className='ptr-label';
+    if (!sqDone && i===sqL && i===sqR) lbl.textContent='L=R';
+    else if (!sqDone && i===sqL) lbl.textContent='L';
+    else if (!sqDone && i===sqR) lbl.textContent='R';
+    wrap.appendChild(cell); wrap.appendChild(lbl); row.appendChild(wrap);
+  }
+  if (sqOut.length) {
+    const lbl=document.createElement('div');
+    lbl.style.cssText='margin-left:16px;font-size:12px;color:#999;align-self:center';
+    lbl.innerHTML='→ output: <b>['+[...sqOut].reverse().join(', ')+(sqOut.length<sqSq.length?', …':'')+']</b>';
+    row.appendChild(lbl);
+  }
+}
+function sqStep() {
+  if (sqDone) { sqReset(); return; }
+  const s=document.getElementById('sq-status');
+  if (sqL>sqR) { sqDone=true; sqRender(); s.innerHTML='<span style="color:#3B6D11">✓ Done! Output: ['+[...sqOut].reverse().join(', ')+']</span>'; return; }
+  if (sqSq[sqL]>sqSq[sqR]) { s.innerHTML='Left ('+sqSq[sqL]+') > Right ('+sqSq[sqR]+') → place left, move L right'; sqOut.push(sqSq[sqL++]); }
+  else { s.innerHTML='Right ('+sqSq[sqR]+') >= Left ('+sqSq[sqL]+') → place right, move R left'; sqOut.push(sqSq[sqR--]); }
+  sqRender();
+}
+function sqReset() { sqL=0; sqR=sqSq.length-1; sqOut=[]; sqDone=false; sqRender(); document.getElementById('sq-status').textContent='Input is sorted. After squaring, largest values are at both ends.'; }
+sqReset();
+
+const zArr=[0,1,0,3,12];
+let zCur=[...zArr], zSlow=0, zFast=0, zDone=false;
+function zRender() {
+  const row=document.getElementById('z-row'); row.innerHTML='';
+  for (let i=0; i<zCur.length; i++) {
+    const wrap=document.createElement('div'); wrap.className='ptr-wrap';
+    const cell=document.createElement('div');
+    let cls='cell';
+    if (!zDone && i===zSlow && i===zFast) cls+=' match';
+    else if (!zDone && i===zSlow) cls+=' left-ptr';
+    else if (!zDone && i===zFast) cls+=' right-ptr';
+    else if (zDone) cls+=' match';
+    cell.className=cls; cell.textContent=zCur[i];
+    const lbl=document.createElement('div'); lbl.className='ptr-label';
+    if (!zDone && i===zSlow && i===zFast) lbl.textContent='s=f';
+    else if (!zDone && i===zSlow) lbl.textContent='slow';
+    else if (!zDone && i===zFast) lbl.textContent='fast';
+    wrap.appendChild(cell); wrap.appendChild(lbl); row.appendChild(wrap);
+  }
+}
+function zStep() {
+  if (zDone) { zReset(); return; }
+  const s=document.getElementById('z-status');
+  if (zFast>=zCur.length) { zDone=true; zRender(); s.innerHTML='<span style="color:#3B6D11">✓ Done! Result: ['+zCur.join(', ')+']</span>'; return; }
+  if (zCur[zFast]!==0) {
+    s.innerHTML='fast='+zFast+' is non-zero ('+zCur[zFast]+') → swap with slow='+zSlow+', advance both';
+    let tmp=zCur[zSlow]; zCur[zSlow]=zCur[zFast]; zCur[zFast]=tmp; zSlow++; zFast++;
+  } else { s.innerHTML='fast='+zFast+' is zero → skip (only advance fast)'; zFast++; }
+  zRender();
+}
+function zReset() { zCur=[...zArr]; zSlow=0; zFast=0; zDone=false; zRender(); document.getElementById('z-status').textContent="slow = insert index. fast finds non-zero values and swaps them to slow's position."; }
+zReset();
+</script>
+</body>
+</html>
