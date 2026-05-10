@@ -14,6 +14,9 @@
 | Strategy | Behavioral | Swap algorithms at runtime |
 | Visitor | Behavioral | Add operations to objects without changing their classes |
 | Facade | Structural | Simplified interface over a complex subsystem |
+| Observer | Behavioral | Notify subscribers automatically when state changes |
+| Decorator | Structural | Wrap an object to add behavior without subclassing |
+| Adapter | Structural | Make an incompatible interface work with an existing one |
 
 ---
 
@@ -322,7 +325,225 @@ player.stop();
 
 ---
 
-## 6. 🏷️ Annotations
+## 6. 👀 Observer Pattern
+
+Defines a one-to-many relationship: when the **subject** changes state,
+all registered **observers** are notified automatically.
+Also known as Publish/Subscribe.
+
+```java
+// Observer contract
+interface Observer {
+    void update(String event, Object data);
+}
+
+// Subject contract
+interface Subject {
+    void subscribe(Observer o);
+    void unsubscribe(Observer o);
+    void notify(String event, Object data);
+}
+```
+
+```java
+class EventBus implements Subject {
+    private final List<Observer> observers = new ArrayList<>();
+
+    @Override public void subscribe(Observer o)   { observers.add(o); }
+    @Override public void unsubscribe(Observer o) { observers.remove(o); }
+
+    @Override
+    public void notify(String event, Object data) {
+        for (Observer o : observers) o.update(event, data);
+    }
+}
+```
+
+```java
+class Logger implements Observer {
+    @Override public void update(String event, Object data) {
+        System.out.println("[LOG] " + event + " → " + data);
+    }
+}
+
+class EmailAlerter implements Observer {
+    @Override public void update(String event, Object data) {
+        if ("ORDER_PLACED".equals(event))
+            System.out.println("[EMAIL] New order: " + data);
+    }
+}
+```
+
+```java
+EventBus bus = new EventBus();
+bus.subscribe(new Logger());
+bus.subscribe(new EmailAlerter());
+
+bus.notify("ORDER_PLACED", "order#42");
+// [LOG]   ORDER_PLACED → order#42
+// [EMAIL] New order: order#42
+
+bus.notify("USER_LOGIN", "alice");
+// [LOG]   USER_LOGIN → alice
+//  (EmailAlerter ignores this event)
+```
+
+### Java's Built-in Support
+
+```java
+// java.util.Observable (legacy — avoid, class not interface)
+// Modern: use PropertyChangeListener or reactive libraries (RxJava, Project Reactor)
+
+// Simple lambda-based observer (when Observer is @FunctionalInterface)
+@FunctionalInterface
+interface Observer { void update(String event, Object data); }
+
+bus.subscribe((event, data) -> System.out.println("lambda: " + event));
+```
+
+---
+
+## 7. 🎁 Decorator Pattern
+
+Attaches new behavior to an object **at runtime** by wrapping it in decorator objects.
+Each decorator implements the same interface as the component it wraps.
+Decorators can be stacked — the order matters.
+
+```java
+interface TextProcessor {
+    String process(String text);
+}
+
+// Base implementation
+class PlainText implements TextProcessor {
+    @Override public String process(String text) { return text; }
+}
+```
+
+```java
+// Base decorator — holds a reference to the wrapped component
+abstract class TextDecorator implements TextProcessor {
+    protected final TextProcessor wrapped;
+    TextDecorator(TextProcessor wrapped) { this.wrapped = wrapped; }
+}
+
+class TrimDecorator extends TextDecorator {
+    TrimDecorator(TextProcessor w) { super(w); }
+    @Override public String process(String text) {
+        return wrapped.process(text).trim();         // delegate then add behavior
+    }
+}
+
+class UpperCaseDecorator extends TextDecorator {
+    UpperCaseDecorator(TextProcessor w) { super(w); }
+    @Override public String process(String text) {
+        return wrapped.process(text).toUpperCase();
+    }
+}
+
+class CensorDecorator extends TextDecorator {
+    private final String badWord, replacement;
+    CensorDecorator(TextProcessor w, String bad, String rep) {
+        super(w); this.badWord = bad; this.replacement = rep;
+    }
+    @Override public String process(String text) {
+        return wrapped.process(text).replace(badWord, replacement);
+    }
+}
+```
+
+```java
+// Stack decorators — each wraps the previous
+TextProcessor pipeline = new CensorDecorator(
+                             new UpperCaseDecorator(
+                                 new TrimDecorator(
+                                     new PlainText())),
+                             "BAD", "***");
+
+pipeline.process("  hello bad world  ");
+// PlainText  → "  hello bad world  "
+// Trim       → "hello bad world"
+// UpperCase  → "HELLO BAD WORLD"
+// Censor     → "HELLO *** WORLD"
+```
+
+> **Real-world example:** `java.io` streams are decorators.
+> `new BufferedReader(new InputStreamReader(new FileInputStream("file.txt")))` —
+> each layer wraps the previous and adds behavior (buffering, charset decoding, file reading).
+
+---
+
+## 8. 🔌 Adapter Pattern
+
+Converts the interface of a class into another interface that the client expects.
+Lets two incompatible interfaces work together without changing either.
+
+```java
+// What the client code expects
+interface JsonParser {
+    Map<String, Object> parse(String json);
+}
+
+// Existing third-party library with a different interface — can't change it
+class LegacyXmlParser {
+    Document parseXml(String xml) {
+        System.out.println("Parsing XML: " + xml);
+        return new Document(xml);          // returns a Document, not a Map
+    }
+}
+
+class Document {
+    String content;
+    Document(String c) { this.content = c; }
+    Map<String, Object> toMap() { return Map.of("content", content); }
+}
+```
+
+```java
+// Adapter — wraps LegacyXmlParser and exposes the JsonParser interface
+class XmlToJsonAdapter implements JsonParser {
+    private final LegacyXmlParser xmlParser = new LegacyXmlParser();
+
+    @Override
+    public Map<String, Object> parse(String input) {
+        Document doc = xmlParser.parseXml(input);   // call the incompatible API
+        return doc.toMap();                          // convert to expected type
+    }
+}
+```
+
+```java
+// Client code only knows about JsonParser — unaware of the XML internals
+JsonParser parser = new XmlToJsonAdapter();
+Map<String, Object> result = parser.parse("<user><name>Alice</name></user>");
+```
+
+### Object Adapter vs Class Adapter
+
+```java
+// Object Adapter (above) — wraps an instance via composition ✅ preferred
+class ObjectAdapter implements Target {
+    private final Adaptee adaptee;
+    ObjectAdapter(Adaptee a) { this.adaptee = a; }
+    @Override public void request() { adaptee.specificRequest(); }
+}
+
+// Class Adapter — extends Adaptee AND implements Target
+// Only possible in Java if Adaptee is a class you can extend
+class ClassAdapter extends Adaptee implements Target {
+    @Override public void request() { specificRequest(); }
+}
+```
+
+| | Object Adapter | Class Adapter |
+|---|---|---|
+| Mechanism | Composition | Inheritance |
+| Flexibility | Wrap any Adaptee subtype | Tied to one Adaptee class |
+| Java support | ✅ Always works | ✅ Only if Adaptee is extendable |
+
+---
+
+## 9. 🏷️ Annotations
 
 Annotations are **metadata** attached to code elements (classes, methods, fields, params).
 They don't affect logic directly — but processors, frameworks, and the JVM read them.
