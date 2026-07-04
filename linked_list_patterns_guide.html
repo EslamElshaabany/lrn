@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Linked List Patterns Guide</title>
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; padding: 16px; font-family: system-ui, sans-serif; background: #fff; color: #1a1a1a; }
+@media (prefers-color-scheme: dark) { body { background: #1a1a1a; color: #e0e0e0; } }
+.tab-bar { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+.tab { padding: 6px 14px; border-radius: 8px; border: 0.5px solid #ccc; background: transparent; cursor: pointer; font-size: 13px; color: #666; transition: all .2s; }
+.tab.active { background: #f0f0f0; color: #1a1a1a; border-color: #888; font-weight: 500; }
+@media (prefers-color-scheme: dark) { .tab { border-color: #444; color: #aaa; } .tab.active { background: #2a2a2a; color: #e0e0e0; border-color: #888; } }
+.panel { display: none; }
+.panel.active { display: block; }
+.section-label { font-size: 11px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: #999; margin: 18px 0 10px; }
+.card { background: #fff; border: 0.5px solid #e0e0e0; border-radius: 12px; padding: 16px 20px; margin-bottom: 14px; }
+@media (prefers-color-scheme: dark) { .card { background: #222; border-color: #333; } }
+.card-title { font-size: 14px; font-weight: 500; margin: 0 0 6px; }
+.card-body { font-size: 13px; color: #666; line-height: 1.6; }
+@media (prefers-color-scheme: dark) { .card-body { color: #aaa; } }
+.card-body b, .card-body .highlight { color: #1a1a1a; }
+@media (prefers-color-scheme: dark) { .card-body b, .card-body .highlight { color: #e0e0e0; } }
+pre.code { background: #f5f5f5; border-radius: 8px; padding: 12px 14px; font-size: 12px; line-height: 1.55; overflow-x: auto; font-family: ui-monospace, "SF Mono", Menlo, monospace; color: #1a1a1a; margin: 10px 0 0; }
+@media (prefers-color-scheme: dark) { pre.code { background: #181818; color: #d4d4d4; } }
+pre.code .cm { color: #999; }
+pre.code .kw { color: #b5155e; } @media (prefers-color-scheme: dark) { pre.code .kw { color: #ff7ab2; } }
+.ll-row { display: flex; align-items: center; flex-wrap: wrap; gap: 0; margin: 16px 0 4px; }
+.node { display: flex; flex-direction: column; align-items: center; }
+.node-box { min-width: 44px; height: 44px; padding: 0 8px; border: 1.5px solid #ccc; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 500; transition: all .3s; background: #fff; }
+@media (prefers-color-scheme: dark) { .node-box { background: #222; } }
+.node-box.slow-ptr { background: #E6F1FB; border-color: #378ADD; color: #042C53; }
+.node-box.fast-ptr { background: #FAECE7; border-color: #D85A30; color: #4A1B0C; }
+.node-box.both-ptr { background: #EAF3DE; border-color: #639922; color: #173404; }
+.node-box.match { background: #EAF3DE; border-color: #639922; color: #173404; }
+.node-box.dummy { border-style: dashed; color: #999; }
+.node-box.removed { opacity: .28; text-decoration: line-through; }
+.arrow { color: #bbb; padding: 0 5px; font-size: 15px; }
+.arrow.loopback { color: #D85A30; font-weight: 600; }
+.ptr-label { font-size: 10px; font-weight: 500; text-align: center; margin-top: 4px; min-height: 13px; color: #999; }
+.btn { padding: 7px 16px; border-radius: 8px; border: 0.5px solid #ccc; background: transparent; cursor: pointer; font-size: 13px; transition: all .15s; color: inherit; }
+.btn:hover { background: #f0f0f0; }
+@media (prefers-color-scheme: dark) { .btn { border-color: #444; color: #e0e0e0; } .btn:hover { background: #2a2a2a; } }
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
+.status { font-size: 13px; color: #666; min-height: 20px; margin: 8px 0; line-height: 1.5; }
+@media (prefers-color-scheme: dark) { .status { color: #aaa; } }
+.badge { display: inline-block; font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 20px; }
+.badge-blue { background: #E6F1FB; color: #0C447C; }
+.badge-coral { background: #FAECE7; color: #993C1D; }
+.badge-green { background: #EAF3DE; color: #3B6D11; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 560px) { .two-col { grid-template-columns: 1fr; } }
+.step-box { background: #f5f5f5; border-radius: 8px; padding: 12px 14px; font-size: 13px; color: #666; line-height: 1.6; border-left: 3px solid #ccc; margin: 8px 0; }
+@media (prefers-color-scheme: dark) { .step-box { background: #252525; color: #aaa; } }
+.step-box.info { border-left-color: #378ADD; }
+.step-box.warn { border-left-color: #EF9F27; }
+.step-box.good { border-left-color: #639922; }
+.step-box b { color: #1a1a1a; }
+@media (prefers-color-scheme: dark) { .step-box b { color: #e0e0e0; } }
+table.cmp { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 6px; }
+table.cmp th { text-align: left; color: #999; font-weight: 500; font-size: 11px; letter-spacing: .05em; text-transform: uppercase; padding: 0 10px 8px 0; }
+table.cmp td { padding: 7px 10px 7px 0; vertical-align: top; border-top: 0.5px solid #e0e0e0; color: #666; line-height: 1.5; }
+@media (prefers-color-scheme: dark) { table.cmp td { border-color: #333; color: #aaa; } }
+table.cmp td:first-child { font-weight: 500; color: #1a1a1a; white-space: nowrap; }
+@media (prefers-color-scheme: dark) { table.cmp td:first-child { color: #e0e0e0; } }
+ol.check { font-size: 13px; color: #666; line-height: 1.7; padding-left: 20px; margin: 0; }
+@media (prefers-color-scheme: dark) { ol.check { color: #aaa; } }
+ol.check b { color: #1a1a1a; } @media (prefers-color-scheme: dark) { ol.check b { color: #e0e0e0; } }
+</style>
+</head>
+<body>
+<div style="padding: 4px 0 0;">
+  <div class="tab-bar">
+    <button class="tab active" onclick="showTab('patterns')">Core patterns</button>
+    <button class="tab" onclick="showTab('cycle')">Cycle detection</button>
+    <button class="tab" onclick="showTab('merge')">Merge sorted</button>
+    <button class="tab" onclick="showTab('remove')">Remove nodes</button>
+    <button class="tab" onclick="showTab('checklist')">Checklist &amp; bugs</button>
+  </div>
+
+  <!-- CORE PATTERNS -->
+  <div id="panel-patterns" class="panel active">
+    <div class="card">
+      <div class="card-title">The node, and the patterns that solve 90% of these problems</div>
+      <div class="card-body">Every linked list problem is a recombination of a few pointer moves. Learn these four and most "hard" list problems become bookkeeping.</div>
+      <pre class="code"><span class="kw">class</span> ListNode {
+    <span class="kw">int</span> val;
+    ListNode next;
+    ListNode(<span class="kw">int</span> val) { <span class="kw">this</span>.val = val; }
+}</pre>
+    </div>
+
+    <p class="section-label">1 — Dummy head node</p>
+    <div class="card">
+      <div class="card-body"><b>Avoids special-casing "what if the head changes."</b> If the head might change or get removed, add a dummy — don't reason about whether <em>this specific case</em> needs one. It costs nothing and eliminates a whole bug category.</div>
+      <pre class="code">ListNode dummy = <span class="kw">new</span> ListNode(0);
+dummy.next = head;
+<span class="cm">// ... do stuff, walk a tail pointer ...</span>
+<span class="kw">return</span> dummy.next;</pre>
+    </div>
+
+    <p class="section-label">2 — Fast / slow pointers</p>
+    <div class="card">
+      <div class="card-body"><b>Find the middle, detect cycles, find nth-from-end.</b> <span class="badge badge-blue">slow</span> moves one step, <span class="badge badge-coral">fast</span> two. When fast falls off the end, slow sits at the middle.</div>
+      <pre class="code">ListNode slow = head, fast = head;
+<span class="kw">while</span> (fast != <span class="kw">null</span> &amp;&amp; fast.next != <span class="kw">null</span>) {
+    slow = slow.next;
+    fast = fast.next.next;
+}
+<span class="cm">// slow is now at the middle</span></pre>
+    </div>
+
+    <p class="section-label">3 — Iterative reversal (three pointers in lockstep)</p>
+    <div class="card">
+      <pre class="code" style="margin-top:0"><span class="kw">public</span> ListNode reverseList(ListNode head) {
+    ListNode prev = <span class="kw">null</span>, curr = head;
+    <span class="kw">while</span> (curr != <span class="kw">null</span>) {
+        ListNode next = curr.next;  <span class="cm">// save before overwriting</span>
+        curr.next = prev;           <span class="cm">// reverse the link</span>
+        prev = curr;                <span class="cm">// advance prev</span>
+        curr = next;                <span class="cm">// advance curr</span>
+    }
+    <span class="kw">return</span> prev; <span class="cm">// prev ends up as the new head</span>
+}</pre>
+      <div class="card-body" style="margin-top:12px;">Order matters: save <b>next</b> <em>before</em> overwriting <code>curr.next</code>, or you lose the rest of the list.</div>
+    </div>
+    <div class="step-box info">
+      <b>Why <code>prev</code> is needed at all:</b> reversing a link means pointing <code>curr.next</code> backward. To do that you need a live reference to the node <em>before</em> <code>curr</code> — that's <code>prev</code>. In a singly linked list, once you move past a node there's no way back. <code>prev</code> starts at <code>null</code> because the original head becomes the new tail, and a tail's <code>next</code> is <code>null</code>.
+    </div>
+  </div>
+
+  <!-- CYCLE DETECTION -->
+  <div id="panel-cycle" class="panel">
+    <div class="card">
+      <div class="card-title">Cycle detection — Floyd's tortoise &amp; hare</div>
+      <div class="card-body"><span class="badge badge-blue">slow</span> moves 1, <span class="badge badge-coral">fast</span> moves 2. If there's a cycle, fast laps slow and they collide. If there isn't, fast walks off the end.</div>
+      <pre class="code"><span class="kw">public boolean</span> hasCycle(ListNode head) {
+    ListNode slow = head, fast = head;
+    <span class="kw">while</span> (fast != <span class="kw">null</span> &amp;&amp; fast.next != <span class="kw">null</span>) {
+        slow = slow.next;
+        fast = fast.next.next;
+        <span class="kw">if</span> (slow == fast) <span class="kw">return true</span>;
+    }
+    <span class="kw">return false</span>;
+}</pre>
+    </div>
+
+    <p class="section-label">Interactive — watch the hare lap the tortoise</p>
+    <div class="ll-row" id="cyc-row"></div>
+    <div class="status" id="cyc-status">Press step. The last node loops back — fast will catch slow inside the cycle.</div>
+    <div class="btn-row">
+      <button class="btn" onclick="cycStep()">Step →</button>
+      <button class="btn" onclick="cycToggle()" id="cyc-toggle">Try: no cycle</button>
+      <button class="btn" onclick="cycReset()">Reset</button>
+    </div>
+
+    <div class="step-box info">
+      <b>Why they're <em>guaranteed</em> to meet:</b> once both are inside the cycle, fast gains exactly 1 node on slow each step. The gap shrinks by exactly 1 — it can't skip over 0. A gap of 1 always becomes 0 next step. Meeting is arithmetic, not luck.
+    </div>
+    <div class="step-box warn">
+      <b>Three details that bite:</b> check <code>fast != null &amp;&amp; fast.next != null</code> <em>before</em> <code>fast.next.next</code> (NPE guard). Compare <em>after</em> both move. Use <code>==</code>, not <code>.equals()</code> — <code>==</code> says what you mean: "same node in memory."
+    </div>
+    <div class="card">
+      <div class="card-title">Where in the list you meet varies (but it's always O(n))</div>
+      <div class="card-body" style="margin-bottom:8px;">Steps to meet ≈ <b>μ + λ</b> — μ (tail length, head → cycle start) plus λ (cycle length).</div>
+      <table class="cmp">
+        <tr><th>Shape</th><th>Time to meet</th></tr>
+        <tr><td>Self-loop (λ=1)</td><td>Fastest — within 1 step of entering</td></tr>
+        <tr><td>Short tail, short cycle</td><td>Very fast</td></tr>
+        <tr><td>Long tail, small cycle</td><td>Most time just reaching the cycle</td></tr>
+        <tr><td>Tiny tail, huge cycle (λ≈n)</td><td>Slowest — close to n steps</td></tr>
+      </table>
+    </div>
+    <div class="step-box good">
+      <b>Finding the cycle's start:</b> after they meet, reset one pointer to <code>head</code>. Move both one step at a time — they meet again exactly at the cycle's entry point. Same μ/λ math.
+    </div>
+  </div>
+
+  <!-- MERGE -->
+  <div id="panel-merge" class="panel">
+    <div class="card">
+      <div class="card-title">Merge two sorted lists — two pointers + dummy</div>
+      <div class="card-body">Walk both lists, always attach the smaller head to a growing <code>tail</code>. <code>dummy.next</code> is fixed the moment the first node attaches — the head is never lost, no matter how far <code>tail</code> walks.</div>
+      <pre class="code"><span class="kw">public</span> ListNode mergeTwoLists(ListNode l1, ListNode l2) {
+    ListNode dummy = <span class="kw">new</span> ListNode(0), tail = dummy;
+    <span class="kw">while</span> (l1 != <span class="kw">null</span> &amp;&amp; l2 != <span class="kw">null</span>) {
+        <span class="kw">if</span> (l1.val &lt;= l2.val) { tail.next = l1; l1 = l1.next; }
+        <span class="kw">else</span>                  { tail.next = l2; l2 = l2.next; }
+        tail = tail.next;
+    }
+    tail.next = (l1 != <span class="kw">null</span>) ? l1 : l2;
+    <span class="kw">return</span> dummy.next;
+}</pre>
+    </div>
+
+    <p class="section-label">Interactive — attach the smaller head each step</p>
+    <div class="card-body" style="margin-bottom:2px;"><span class="badge badge-blue">list1</span></div>
+    <div class="ll-row" id="mg-l1"></div>
+    <div class="card-body" style="margin:8px 0 2px;"><span class="badge badge-coral">list2</span></div>
+    <div class="ll-row" id="mg-l2"></div>
+    <div class="card-body" style="margin:8px 0 2px;"><span class="badge badge-green">merged</span></div>
+    <div class="ll-row" id="mg-out"></div>
+    <div class="status" id="mg-status">Compare the two heads. The smaller one gets linked to the tail.</div>
+    <div class="btn-row">
+      <button class="btn" onclick="mgStep()">Step →</button>
+      <button class="btn" onclick="mgReset()">Reset</button>
+    </div>
+
+    <div class="step-box warn">
+      <b>Bug this prevents:</b> reusing one variable as both "the head" and "the thing that advances" (<code>list3 = list3.next</code>). Once it moves past the first node, nothing points at the start — you return the <em>last</em> node.
+    </div>
+    <div class="step-box warn">
+      <b>Comparison direction:</b> <code>if (l1.val &gt; l2.val)</code> picks the <em>larger</em> value. For ascending order you want <code>&lt;=</code> — a one-character flip that's easy to miss.
+    </div>
+    <div class="card">
+      <div class="card-title">Min-heap variant — earns its keep for <em>k</em> lists</div>
+      <div class="card-body">Drive the loop off <code>!heap.isEmpty()</code>, not the list references — null lists just never get offered. For two lists, two-pointer is simpler and O(1) space vs. the heap's O(log&nbsp;n); the heap only pays off merging <em>k</em> lists.</div>
+      <pre class="code">PriorityQueue&lt;ListNode&gt; heap = <span class="kw">new</span> PriorityQueue&lt;&gt;((a, b) -&gt; a.val - b.val);
+<span class="kw">if</span> (l1 != <span class="kw">null</span>) heap.offer(l1);
+<span class="kw">if</span> (l2 != <span class="kw">null</span>) heap.offer(l2);
+ListNode dummy = <span class="kw">new</span> ListNode(0), tail = dummy;
+<span class="kw">while</span> (!heap.isEmpty()) {
+    ListNode node = heap.poll();
+    tail.next = node; tail = tail.next;
+    <span class="kw">if</span> (node.next != <span class="kw">null</span>) heap.offer(node.next); <span class="cm">// node.next, never tail.next!</span>
+}
+<span class="kw">return</span> dummy.next;</pre>
+    </div>
+    <div class="step-box warn">
+      <b>Heap traps:</b> looping on <code>l1!=null &amp;&amp; l2!=null</code> (never reassigned → infinite loop); forgetting <code>tail = tail.next</code> (overwrites one slot); re-offering <code>tail.next</code> instead of <code>node.next</code> (that <em>is</em> the node you just polled → duplicates / self-loop).
+    </div>
+  </div>
+
+  <!-- REMOVE -->
+  <div id="panel-remove" class="panel">
+    <div class="card">
+      <div class="card-title">Removing nodes by value</div>
+      <div class="card-body"><b>The bug to recognize:</b> if <code>prev</code> starts equal to <code>head</code> (no dummy) and the head needs removing, <code>prev.next = curr.next</code> is a no-op — <code>prev</code> <em>is</em> <code>curr</code>, and a node can't detach itself. The dummy makes <code>prev</code> and <code>curr</code> start on <em>different</em> nodes.</div>
+      <pre class="code"><span class="kw">public</span> ListNode removeElements(ListNode head, <span class="kw">int</span> val) {
+    ListNode dummy = <span class="kw">new</span> ListNode(0, head);
+    ListNode prev = dummy, curr = head;
+    <span class="kw">while</span> (curr != <span class="kw">null</span>) {
+        <span class="kw">if</span> (curr.val == val) prev.next = curr.next; <span class="cm">// skip curr</span>
+        <span class="kw">else</span>                 prev = curr;            <span class="cm">// only advance when kept</span>
+        curr = curr.next;
+    }
+    <span class="kw">return</span> dummy.next;
+}</pre>
+    </div>
+
+    <p class="section-label">Interactive — dummy + prev/curr, remove all 6's</p>
+    <div class="ll-row" id="rm-row"></div>
+    <div class="status" id="rm-status">prev starts on the dummy, curr on the head. prev only advances when we keep a node.</div>
+    <div class="btn-row">
+      <button class="btn" onclick="rmStep()">Step →</button>
+      <button class="btn" onclick="rmReset()">Reset</button>
+    </div>
+
+    <div class="step-box warn">
+      <b>Critical detail:</b> <code>prev</code> advances only in the <code>else</code> branch. Advance it unconditionally and it can end up pointing at a node you just removed.
+    </div>
+
+    <div class="card">
+      <div class="card-title">Recursive approach — trust the contract</div>
+      <div class="card-body"><code>removeElements(node, val)</code> returns the head of the correctly-filtered list starting at <code>node</code>. Once you commit to that contract, you don't trace three nodes deep — you trust it.</div>
+      <pre class="code"><span class="kw">public</span> ListNode removeElements(ListNode head, <span class="kw">int</span> val) {
+    <span class="kw">if</span> (head == <span class="kw">null</span>) <span class="kw">return null</span>;                 <span class="cm">// empty stays empty</span>
+    head.next = removeElements(head.next, val);   <span class="cm">// fix the rest first</span>
+    <span class="kw">return</span> head.val == val ? head.next : head;    <span class="cm">// then decide about head</span>
+}</pre>
+      <div class="card-body" style="margin-top:12px;">No dummy needed — every call returns its <em>own</em> correct head to its caller, so there's no broken link to reach backward and fix.</div>
+    </div>
+    <div class="step-box info">
+      <b>Trace of [1, 7, 2], removing 7:</b>
+      <pre class="code" style="background:transparent;padding:6px 0 0;">removeElements([1,7,2])
+  head=1 → removeElements([7,2])
+    head=7 → removeElements([2])
+      head=2 → removeElements([]) → <b>null</b>
+      2 != 7, keep → returns 2
+    7 == 7, skip → returns 2        <span class="cm">(7 discarded here)</span>
+  1 != 7, keep → returns 1
+result: 1 -> 2</pre>
+      Node 7 needs no special handling for head-vs-middle — recursion doesn't know or care about position. That's the payoff.
+    </div>
+    <div class="step-box warn">
+      <b>Trade-off:</b> O(n) time either way, but recursion is O(n) <em>space</em> (call stack) vs. O(1) for the iterative dummy version. On very long lists, recursion risks <code>StackOverflowError</code> where iteration wouldn't.
+    </div>
+  </div>
+
+  <!-- CHECKLIST -->
+  <div id="panel-checklist" class="panel">
+    <div class="card">
+      <div class="card-title">The "way of thinking" checklist</div>
+      <div class="card-body">Run through this before writing any linked list code.</div>
+    </div>
+    <ol class="check">
+      <li><b>Can the head change or get removed?</b> If yes → dummy node, no exceptions.</li>
+      <li><b>What has to move relative to what?</b><br>
+        single pointer → plain traversal · <code>prev</code>+<code>curr</code> → deletion/insertion (you always need the node <em>before</em> the one you change) · <code>slow</code>+<code>fast</code> → middle, cycle, nth-from-end · <code>prev</code>+<code>curr</code>+<code>next</code> → reversal.</li>
+      <li><b>Does it decompose into "fix the rest, then handle this one node"?</b> If so, recursion may be cleaner (reversal, merge, removal all fit). The hard part is trusting the contract instead of unfolding the whole stack.</li>
+      <li><b>Trace 3 states on paper first:</b> empty list · target is the <em>first</em> node · target is the <em>last</em> node (or absent). If pencil-and-paper breaks on any, the code will too.</li>
+      <li><b>State your invariant as a sentence.</b> e.g. "<code>prev.next</code> is always the last kept node's link, pointing at whatever <code>curr</code> is about to examine." If you can't say it out loud, that uncertainty becomes the bug.</li>
+      <li><b>Advance pointers in a deliberate, fixed order.</b> Order-of-operations mistakes are the #1 source of lost nodes.</li>
+    </ol>
+    <div class="step-box good">
+      Most "stuck" moments on simple problems aren't a syntax gap — they're step 4 getting skipped. Pencil-and-paper tracing catches these in ~10 seconds.
+    </div>
+
+    <p class="section-label">Common Java-specific bugs, quick reference</p>
+    <div class="step-box warn"><b>NPE from chaining <code>.next.next</code></b> without checking both aren't null first (<code>fast != null &amp;&amp; fast.next != null</code>).</div>
+    <div class="step-box warn"><b>Forgetting to advance the tail</b> when building a new list — reusing one variable as head-holder and tail-advancer loses the head.</div>
+    <div class="step-box warn"><b><code>==</code> vs <code>.equals()</code></b> — for <code>ListNode</code>, <code>.equals()</code> happens to fall back to reference equality (not overridden), but <code>==</code> states the actual intent and doesn't depend on that holding.</div>
+    <div class="step-box warn"><b>Losing a reference during reversal</b> by reordering the assignments, or overwriting <code>curr.next</code> before saving it to <code>next</code>.</div>
+    <div class="step-box warn"><b>Comparison direction in merges</b> — <code>&lt;=</code> vs <code>&gt;</code> flips ascending/descending; a one-character slip.</div>
+    <div class="step-box warn"><b>Re-offering the wrong node to a heap</b> — always push <code>node.next</code>, never <code>tail.next</code> (which right after linking <em>is</em> the node you just polled).</div>
+    <div class="step-box warn"><b>Looping on the wrong condition</b> — with a heap or dummy pattern, drive the loop off the data structure's actual state (<code>!heap.isEmpty()</code>, <code>curr != null</code>), not variables that never get reassigned inside the loop.</div>
+  </div>
+</div>
+
+<script>
+function showTab(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+/* ---------- helpers ---------- */
+function makeNode(val, cls, label) {
+  const node = document.createElement('div');
+  node.className = 'node';
+  const box = document.createElement('div');
+  box.className = 'node-box' + (cls ? ' ' + cls : '');
+  box.textContent = val;
+  const lbl = document.createElement('div');
+  lbl.className = 'ptr-label';
+  lbl.textContent = label || '';
+  node.appendChild(box); node.appendChild(lbl);
+  return node;
+}
+function makeArrow(text, cls) {
+  const a = document.createElement('div');
+  a.className = 'arrow' + (cls ? ' ' + cls : '');
+  a.textContent = text || '→';
+  a.style.marginBottom = '17px';
+  return a;
+}
+function ptrClass(isSlow, isFast) {
+  if (isSlow && isFast) return 'both-ptr';
+  if (isSlow) return 'slow-ptr';
+  if (isFast) return 'fast-ptr';
+  return '';
+}
+
+/* ---------- 1. CYCLE DETECTION ---------- */
+const cycVals = [3, 2, 0, -4];
+let cycHasCycle = true, cycStart = 1;   // last node points back to index cycStart
+let cycSlow = 0, cycFast = 0, cycDone = false, cycStarted = false;
+function cycNext(i) {
+  if (i === cycVals.length - 1) return cycHasCycle ? cycStart : -1;
+  return i + 1;
+}
+function cycRender() {
+  const row = document.getElementById('cyc-row');
+  row.innerHTML = '';
+  for (let i = 0; i < cycVals.length; i++) {
+    let cls = '';
+    if (cycStarted) cls = ptrClass(i === cycSlow, i === cycFast);
+    if (cycDone && (i === cycSlow)) cls = 'match';
+    let lbl = '';
+    if (cycStarted && !cycDone) {
+      if (i === cycSlow && i === cycFast) lbl = 'slow=fast';
+      else if (i === cycSlow) lbl = 'slow';
+      else if (i === cycFast) lbl = 'fast';
+    } else if (cycDone && i === cycSlow) lbl = 'met!';
+    row.appendChild(makeNode(cycVals[i], cls, lbl));
+    if (i < cycVals.length - 1) row.appendChild(makeArrow('→'));
+  }
+  if (cycHasCycle) {
+    row.appendChild(makeArrow('↺ back to ' + cycVals[cycStart], 'loopback'));
+  } else {
+    row.appendChild(makeArrow('→ null'));
+  }
+}
+function cycStep() {
+  if (cycDone) { cycReset(); return; }
+  cycStarted = true;
+  const s = document.getElementById('cyc-status');
+  // advance fast twice, slow once — with null guards mimicking the real loop
+  const f1 = cycNext(cycFast);
+  if (f1 === -1) { cycDone = true; cycRender(); s.innerHTML = '<span style="color:#993C1D">✗ fast hit null — no cycle. hasCycle returns false.</span>'; return; }
+  const f2 = cycNext(f1);
+  if (f2 === -1) { cycDone = true; cycRender(); s.innerHTML = '<span style="color:#993C1D">✗ fast hit null — no cycle. hasCycle returns false.</span>'; return; }
+  cycFast = f2;
+  cycSlow = cycNext(cycSlow);
+  if (cycSlow === cycFast) {
+    cycDone = true; cycRender();
+    s.innerHTML = '<span style="color:#3B6D11">✓ slow == fast at node ' + cycVals[cycSlow] + ' — cycle detected. hasCycle returns true.</span>';
+    return;
+  }
+  cycRender();
+  s.innerHTML = 'slow → <b>' + cycVals[cycSlow] + '</b> (moved 1), fast → <b>' + cycVals[cycFast] + '</b> (moved 2). Not equal yet — gap keeps shrinking.';
+}
+function cycToggle() {
+  cycHasCycle = !cycHasCycle;
+  document.getElementById('cyc-toggle').textContent = cycHasCycle ? 'Try: no cycle' : 'Try: with cycle';
+  cycReset();
+}
+function cycReset() {
+  cycSlow = 0; cycFast = 0; cycDone = false; cycStarted = false; cycRender();
+  document.getElementById('cyc-status').innerHTML = cycHasCycle
+    ? 'Press step. The last node loops back — fast will catch slow inside the cycle.'
+    : 'Press step. No loop-back this time — fast will run off the end and return false.';
+}
+cycReset();
+
+/* ---------- 2. MERGE ---------- */
+const mgA = [1, 2, 4], mgB = [1, 3, 4];
+let mgI = 0, mgJ = 0, mgOut = [], mgDone = false;
+function mgRenderList(id, arr, ptr, cls, label) {
+  const row = document.getElementById(id);
+  row.innerHTML = '';
+  if (arr.length === 0) { row.appendChild(makeNode('∅', '', '')); return; }
+  for (let i = 0; i < arr.length; i++) {
+    const active = (i === ptr && !mgDone);
+    const consumed = i < ptr;
+    row.appendChild(makeNode(arr[i], active ? cls : (consumed ? 'removed' : ''), active ? label : ''));
+    if (i < arr.length - 1) row.appendChild(makeArrow('→'));
+  }
+}
+function mgRenderOut() {
+  const row = document.getElementById('mg-out');
+  row.innerHTML = '';
+  row.appendChild(makeNode('D', 'dummy', 'dummy'));
+  if (mgOut.length) row.appendChild(makeArrow('→'));
+  for (let i = 0; i < mgOut.length; i++) {
+    const isTail = i === mgOut.length - 1;
+    row.appendChild(makeNode(mgOut[i], mgDone ? 'match' : (isTail ? 'both-ptr' : ''), isTail && !mgDone ? 'tail' : ''));
+    if (i < mgOut.length - 1) row.appendChild(makeArrow('→'));
+  }
+}
+function mgRender() {
+  mgRenderList('mg-l1', mgA, mgI, 'slow-ptr', 'l1');
+  mgRenderList('mg-l2', mgB, mgJ, 'fast-ptr', 'l2');
+  mgRenderOut();
+}
+function mgStep() {
+  if (mgDone) { mgReset(); return; }
+  const s = document.getElementById('mg-status');
+  if (mgI >= mgA.length || mgJ >= mgB.length) {
+    // attach the rest
+    while (mgI < mgA.length) mgOut.push(mgA[mgI++]);
+    while (mgJ < mgB.length) mgOut.push(mgB[mgJ++]);
+    mgDone = true; mgRender();
+    s.innerHTML = '<span style="color:#3B6D11">✓ One list is empty — attach the rest in one link. Merged: [' + mgOut.join(', ') + ']</span>';
+    return;
+  }
+  if (mgA[mgI] <= mgB[mgJ]) {
+    s.innerHTML = 'l1 (' + mgA[mgI] + ') ≤ l2 (' + mgB[mgJ] + ') → link l1, advance l1';
+    mgOut.push(mgA[mgI++]);
+  } else {
+    s.innerHTML = 'l2 (' + mgB[mgJ] + ') &lt; l1 (' + mgA[mgI] + ') → link l2, advance l2';
+    mgOut.push(mgB[mgJ++]);
+  }
+  mgRender();
+}
+function mgReset() {
+  mgI = 0; mgJ = 0; mgOut = []; mgDone = false; mgRender();
+  document.getElementById('mg-status').textContent = 'Compare the two heads. The smaller one gets linked to the tail.';
+}
+mgReset();
+
+/* ---------- 3. REMOVE ---------- */
+const rmVals = [1, 2, 6, 3, 4, 5, 6], rmTarget = 6;
+let rmPrev = -1, rmCurr = 0, rmRemoved = new Set(), rmDone = false;
+function rmRender() {
+  const row = document.getElementById('rm-row');
+  row.innerHTML = '';
+  // dummy
+  row.appendChild(makeNode('D', 'dummy' + (rmPrev === -1 && !rmDone ? ' slow-ptr' : ''), rmPrev === -1 && !rmDone ? 'prev' : 'dummy'));
+  row.appendChild(makeArrow('→'));
+  for (let i = 0; i < rmVals.length; i++) {
+    let cls = '';
+    if (rmRemoved.has(i)) cls = 'removed';
+    else if (!rmDone && i === rmCurr) cls = 'fast-ptr';
+    else if (!rmDone && i === rmPrev) cls = 'slow-ptr';
+    if (rmDone && !rmRemoved.has(i)) cls = 'match';
+    let lbl = '';
+    if (!rmDone && i === rmCurr && i === rmPrev) lbl = 'prev=curr';
+    else if (!rmDone && i === rmCurr) lbl = 'curr';
+    else if (!rmDone && i === rmPrev) lbl = 'prev';
+    row.appendChild(makeNode(rmVals[i], cls, lbl));
+    if (i < rmVals.length - 1) row.appendChild(makeArrow('→'));
+  }
+}
+function rmStep() {
+  if (rmDone) { rmReset(); return; }
+  const s = document.getElementById('rm-status');
+  if (rmCurr >= rmVals.length) {
+    rmDone = true; rmRender();
+    const kept = rmVals.filter((_, i) => !rmRemoved.has(i));
+    s.innerHTML = '<span style="color:#3B6D11">✓ curr fell off the end. Result: [' + kept.join(', ') + ']</span>';
+    return;
+  }
+  if (rmVals[rmCurr] === rmTarget) {
+    rmRemoved.add(rmCurr);
+    s.innerHTML = 'curr (' + rmVals[rmCurr] + ') == ' + rmTarget + ' → prev.next = curr.next (skip it). <b>prev stays put.</b>';
+  } else {
+    s.innerHTML = 'curr (' + rmVals[rmCurr] + ') ≠ ' + rmTarget + ' → keep it, advance prev to curr.';
+    rmPrev = rmCurr;
+  }
+  rmCurr++;
+  rmRender();
+}
+function rmReset() {
+  rmPrev = -1; rmCurr = 0; rmRemoved = new Set(); rmDone = false; rmRender();
+  document.getElementById('rm-status').textContent = 'prev starts on the dummy, curr on the head. prev only advances when we keep a node.';
+}
+rmReset();
+</script>
+</body>
+</html>
