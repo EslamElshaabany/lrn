@@ -6,7 +6,7 @@
 <title>{{ page.title | default: 'Note' }} — {{ site.title }}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{{ '/assets/notes.css' | relative_url }}">
+<link rel="stylesheet" href="{{ '/assets/notes.css' | relative_url }}?v={{ site.time | date: '%s' }}">
 </head>
 <body>
 <div class="container">
