@@ -14,9 +14,7 @@ topic: dsa
 See also [data-structures.md](data-structures.md) for the "memory is numbered
 boxes" foundation the call stack sits on, [binary-trees.md](binary-trees.md) for
 where recursion does its most famous work, and [patterns.md](patterns.md) for the
-DFS/backtracking rows in context. There's an interactive companion —
-[the Recursion guide](../../guides/recursion.html) — that animates the call stack
-of `factorial` and the branching call tree of `fibonacci`.
+DFS/backtracking rows in context.
 
 ---
 
@@ -127,8 +125,7 @@ factorial(4) returns 4 * 6  = 24
 The work you wrote *after* the recursive call (the `n *`) runs during unwinding, in
 **reverse** order of the calls. That "reverse on the way back up" is the secret
 behind post-order tree traversal, reversing a linked list recursively, and printing
-a stack top-to-bottom. (The interactive [guide](../../guides/recursion.html)
-animates exactly this push/pop.)
+a stack top-to-bottom.
 
 ---
 
@@ -384,8 +381,7 @@ That single cache collapses O(2^n) to O(n). This is **memoization**, and it is t
 front door to **dynamic programming**: DP is just "recursion with overlapping
 subproblems, plus a cache." Turn the memo into a filled-bottom-up table and you have
 the iterative "tabulation" style. (A full DP note is its own topic — this is only the
-bridge to it. The interactive [guide](../../guides/recursion.html) lets you toggle
-memoization on the `fib` call tree and watch the duplicate subtrees vanish.)
+bridge to it.)
 
 ---
 
