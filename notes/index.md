@@ -21,6 +21,7 @@ topic: index
 
 - [Data Structures — The Mental Model](dsa/data-structures.md) — why each structure exists
 - [DSA Cheat Sheet](dsa/patterns.md) — LeetCode patterns by frequency
+- [Binary Trees — DFS & BFS](dsa/binary-trees.md) — traversals, BST invariant, the DFS/BFS patterns
 
 Looking for the interactive pattern walkthroughs? See the
 [guides on the home page](../).

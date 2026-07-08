@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Binary Trees — DFS & BFS Guide</title>
+<style>
+* { box-sizing: border-box; }
+:root {
+  --nfill: #fff; --nstroke: #ccc; --ntext: #1a1a1a; --edge: #cfcfcf;
+  --cur-fill: #E6F1FB; --cur-stroke: #378ADD; --cur-text: #042C53;
+  --vis-fill: #EAF3DE; --vis-stroke: #639922; --vis-text: #173404;
+  --dead-op: 0.22;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --nfill: #222; --nstroke: #444; --ntext: #e0e0e0; --edge: #444;
+    --cur-fill: #12324f; --cur-stroke: #4d9fe6; --cur-text: #dcefff;
+    --vis-fill: #2a3a15; --vis-stroke: #7cae3c; --vis-text: #e4f3cc;
+  }
+}
+body { margin: 0; padding: 16px; font-family: system-ui, sans-serif; background: #fff; color: #1a1a1a; }
+@media (prefers-color-scheme: dark) { body { background: #1a1a1a; color: #e0e0e0; } }
+.tab-bar { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+.tab { padding: 6px 14px; border-radius: 8px; border: 0.5px solid #ccc; background: transparent; cursor: pointer; font-size: 13px; color: #666; transition: all .2s; }
+.tab.active { background: #f0f0f0; color: #1a1a1a; border-color: #888; font-weight: 500; }
+@media (prefers-color-scheme: dark) { .tab { border-color: #444; color: #aaa; } .tab.active { background: #2a2a2a; color: #e0e0e0; border-color: #888; } }
+.panel { display: none; }
+.panel.active { display: block; }
+.section-label { font-size: 11px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: #999; margin: 18px 0 10px; }
+.card { background: #fff; border: 0.5px solid #e0e0e0; border-radius: 12px; padding: 16px 20px; margin-bottom: 14px; }
+@media (prefers-color-scheme: dark) { .card { background: #222; border-color: #333; } }
+.card-title { font-size: 14px; font-weight: 500; margin: 0 0 6px; }
+.card-body { font-size: 13px; color: #666; line-height: 1.6; }
+@media (prefers-color-scheme: dark) { .card-body { color: #aaa; } }
+.btn { padding: 7px 16px; border-radius: 8px; border: 0.5px solid #ccc; background: transparent; cursor: pointer; font-size: 13px; transition: all .15s; color: inherit; }
+.btn:hover { background: #f0f0f0; }
+@media (prefers-color-scheme: dark) { .btn { border-color: #444; } .btn:hover { background: #2a2a2a; } }
+.btn.primary { border-color: #639922; }
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; align-items: center; }
+.status { font-size: 13px; color: #666; min-height: 20px; margin: 8px 2px; line-height: 1.5; }
+@media (prefers-color-scheme: dark) { .status { color: #aaa; } }
+.seg { display: inline-flex; border: 0.5px solid #ccc; border-radius: 8px; overflow: hidden; }
+@media (prefers-color-scheme: dark) { .seg { border-color: #444; } }
+.seg button { padding: 6px 12px; border: 0; background: transparent; cursor: pointer; font-size: 12px; color: #777; border-right: 0.5px solid #ccc; font-family: inherit; }
+.seg button:last-child { border-right: 0; }
+.seg button.on { background: #E6F1FB; color: #042C53; font-weight: 500; }
+@media (prefers-color-scheme: dark) { .seg button { border-color: #444; color: #999; } .seg button.on { background: #12324f; color: #dcefff; } }
+.tree-wrap { text-align: center; padding: 6px 0 2px; }
+svg { max-width: 360px; width: 100%; height: auto; }
+.tnode circle { fill: var(--nfill); stroke: var(--nstroke); stroke-width: 2; transition: all .3s; }
+.tnode text { fill: var(--ntext); font-size: 15px; font-weight: 600; transition: all .3s; }
+.tnode.visited circle { fill: var(--vis-fill); stroke: var(--vis-stroke); }
+.tnode.visited text { fill: var(--vis-text); }
+.tnode.current circle { fill: var(--cur-fill); stroke: var(--cur-stroke); stroke-width: 3; }
+.tnode.current text { fill: var(--cur-text); }
+.tnode.dead { opacity: var(--dead-op); }
+.edge { stroke: var(--edge); stroke-width: 2; transition: opacity .3s; }
+.edge.dead { opacity: var(--dead-op); }
+.seq { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin: 4px 2px 0; min-height: 30px; }
+.seq-chip { width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; background: var(--vis-fill); color: var(--vis-text); border: 1px solid var(--vis-stroke); }
+.seq-chip.pending { background: transparent; color: #bbb; border: 1px dashed #ccc; }
+@media (prefers-color-scheme: dark) { .seq-chip.pending { color: #555; border-color: #444; } }
+pre.code { background: #f5f5f5; border-radius: 8px; padding: 12px 14px; font-size: 12px; line-height: 1.6; overflow-x: auto; font-family: ui-monospace, "SF Mono", Menlo, monospace; color: #1a1a1a; margin: 0; }
+@media (prefers-color-scheme: dark) { pre.code { background: #181818; color: #d4d4d4; } }
+pre.code .hl { background: rgba(200,245,66,0.28); border-radius: 3px; padding: 1px 3px; font-weight: 700; }
+pre.code .dim { opacity: .5; }
+.step-box { background: #f5f5f5; border-radius: 8px; padding: 12px 14px; font-size: 13px; color: #666; line-height: 1.6; border-left: 3px solid #ccc; margin-bottom: 10px; }
+@media (prefers-color-scheme: dark) { .step-box { background: #252525; color: #aaa; } }
+.step-box.info { border-left-color: #378ADD; }
+.step-box.warn { border-left-color: #EF9F27; }
+.step-box.good { border-left-color: #639922; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 560px) { .two-col { grid-template-columns: 1fr; } }
+.badge { display: inline-block; font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 20px; }
+.badge-blue { background: #E6F1FB; color: #0C447C; }
+.badge-green { background: #EAF3DE; color: #3B6D11; }
+.badge-amber { background: #FAEEDA; color: #854F0B; }
+.problem-tag { display: inline-block; font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 20px; margin: 2px; background: #f5f5f5; color: #666; border: 0.5px solid #e0e0e0; }
+@media (prefers-color-scheme: dark) { .problem-tag { background: #2a2a2a; color: #aaa; border-color: #333; } }
+table.cmp { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.cmp th { text-align: left; color: #999; font-weight: 500; font-size: 11px; letter-spacing: .05em; text-transform: uppercase; padding: 0 10px 8px 0; }
+table.cmp td { padding: 7px 10px 7px 0; vertical-align: top; border-top: 0.5px solid #e0e0e0; color: #666; line-height: 1.5; }
+@media (prefers-color-scheme: dark) { table.cmp td { border-color: #333; color: #aaa; } }
+table.cmp td:first-child { font-weight: 500; color: #1a1a1a; white-space: nowrap; }
+@media (prefers-color-scheme: dark) { table.cmp td:first-child { color: #e0e0e0; } }
+.highlight { color: #1a1a1a; font-weight: 500; }
+@media (prefers-color-scheme: dark) { .highlight { color: #e0e0e0; } }
+</style>
+</head>
+<body>
+<div style="padding: 4px 0 0;">
+  <div class="tab-bar">
+    <button class="tab active" onclick="showTab('order')">Traversal order</button>
+    <button class="tab" onclick="showTab('recursion')">DFS = one recursion</button>
+    <button class="tab" onclick="showTab('bst')">BST search</button>
+    <button class="tab" onclick="showTab('patterns')">Patterns</button>
+  </div>
+
+  <!-- TRAVERSAL ORDER -->
+  <div id="panel-order" class="panel active">
+    <div class="card">
+      <div class="card-title">Same tree, four visiting orders</div>
+      <div class="card-body">Pick a traversal and step through it. The three DFS orders are named for <span class="highlight">where the root falls relative to its subtrees</span> — <b>pre</b> = before, <b>in</b> = in&nbsp;between, <b>post</b> = after. Left always comes before right; only the root moves. <b>Level order</b> is the odd one out — it's BFS, visiting row by row.</div>
+    </div>
+
+    <div class="btn-row">
+      <span class="seg" id="order-seg">
+        <button class="on" onclick="pickOrder('pre', this)">Preorder</button>
+        <button onclick="pickOrder('in', this)">Inorder</button>
+        <button onclick="pickOrder('post', this)">Postorder</button>
+        <button onclick="pickOrder('level', this)">Level order</button>
+      </span>
+    </div>
+
+    <div class="tree-wrap">
+      <svg viewBox="0 0 340 230" id="order-svg" aria-label="binary tree">
+        <line class="edge" data-e="1-2" x1="170" y1="36" x2="90"  y2="112"/>
+        <line class="edge" data-e="1-3" x1="170" y1="36" x2="250" y2="112"/>
+        <line class="edge" data-e="2-4" x1="90"  y1="112" x2="45"  y2="188"/>
+        <line class="edge" data-e="2-5" x1="90"  y1="112" x2="135" y2="188"/>
+        <line class="edge" data-e="3-6" x1="250" y1="112" x2="295" y2="188"/>
+        <g class="tnode" data-n="1"><circle cx="170" cy="36"  r="19"/><text x="170" y="42" text-anchor="middle">1</text></g>
+        <g class="tnode" data-n="2"><circle cx="90"  cy="112" r="19"/><text x="90"  y="118" text-anchor="middle">2</text></g>
+        <g class="tnode" data-n="3"><circle cx="250" cy="112" r="19"/><text x="250" y="118" text-anchor="middle">3</text></g>
+        <g class="tnode" data-n="4"><circle cx="45"  cy="188" r="19"/><text x="45"  y="194" text-anchor="middle">4</text></g>
+        <g class="tnode" data-n="5"><circle cx="135" cy="188" r="19"/><text x="135" y="194" text-anchor="middle">5</text></g>
+        <g class="tnode" data-n="6"><circle cx="295" cy="188" r="19"/><text x="295" y="194" text-anchor="middle">6</text></g>
+      </svg>
+    </div>
+
+    <p class="section-label">Visit sequence</p>
+    <div class="seq" id="order-seq"></div>
+    <div class="status" id="order-status">Preorder — Root, then Left, then Right. Press Step.</div>
+    <div class="btn-row">
+      <button class="btn primary" onclick="orderStep()">Step →</button>
+      <button class="btn" onclick="orderPlay()">▶ Play</button>
+      <button class="btn" onclick="orderReset()">Reset</button>
+    </div>
+
+    <div class="step-box info" style="margin-top:14px;">
+      <b id="order-rule-title">Preorder rule</b><br>
+      <span id="order-rule-body">Process the node the moment you arrive, <i>before</i> descending. That's why the root is first.</span>
+    </div>
+    <div class="step-box good">
+      <b>Why inorder is special for a BST:</b> smaller-left, larger-right means "Left, Root, Right" visits values in <b>sorted order</b> — a free sorted list. That single fact solves <i>Kth Smallest in a BST</i> and <i>Validate BST</i>.
+    </div>
+  </div>
+
+  <!-- DFS = ONE RECURSION -->
+  <div id="panel-recursion" class="panel">
+    <div class="card">
+      <div class="card-title">The three DFS orders are the same six lines</div>
+      <div class="card-body">You don't learn three algorithms. You learn one recursion and <span class="highlight">move a single line</span> — where "process this node" sits relative to the two recursive calls. Toggle below to see the line move.</div>
+    </div>
+    <div class="btn-row">
+      <span class="seg" id="rec-seg">
+        <button class="on" onclick="pickRec('pre', this)">Preorder</button>
+        <button onclick="pickRec('in', this)">Inorder</button>
+        <button onclick="pickRec('post', this)">Postorder</button>
+      </span>
+    </div>
+    <pre class="code" id="rec-code"></pre>
+    <div class="step-box info" style="margin-top:12px;">
+      <b>Mnemonic:</b> pre / in / post = <b>before / middle / after</b> — literally where "Root" sits in the sequence "Left … Right".
+    </div>
+
+    <p class="section-label" style="margin-top:20px;">The leap: return information back up (postorder)</p>
+    <div class="card">
+      <div class="card-body">Beginners push info <i>down</i> the tree (preorder: "here's the path so far"). The jump to medium/hard is DFS that <span class="highlight">returns an answer up</span> from the children and combines it. <b>Height</b> is the template:</div>
+    </div>
+    <pre class="code">int maxDepth(TreeNode node) {
+    if (node == null) return 0;
+    int left  = maxDepth(node.left);   <span class="dim">// answer for left subtree</span>
+    int right = maxDepth(node.right);  <span class="dim">// answer for right subtree</span>
+    return 1 + Math.max(left, right);  <span class="hl">// combine + this node</span>
+}</pre>
+    <div class="two-col" style="margin-top:12px;">
+      <div class="card">
+        <div class="card-title">Same shape, different combine</div>
+        <div class="card-body">
+          <b>Diameter</b> — track max of <code>leftH + rightH</code> as a side effect.<br>
+          <b>Balanced?</b> — return height, or <code>-1</code> to short-circuit imbalance.<br>
+          <b>Max path sum</b> — flow a running sum up, drop negatives.
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">The tell</div>
+        <div class="card-body">If a node's answer <span class="highlight">depends on its children's answers</span>, reach for postorder-with-a-return-value. This one pattern is most of the "hard" tree tier.</div>
+      </div>
+    </div>
+    <div class="step-box warn" style="margin-top:4px;">
+      Think of a tree as a <b>graph with no cycles</b> — no "visited" set needed, recursion can't loop. Recursion is just DFS with the stack hidden inside the language.
+    </div>
+  </div>
+
+  <!-- BST SEARCH -->
+  <div id="panel-bst" class="panel">
+    <div class="card">
+      <div class="card-title">Search = binary search on a tree</div>
+      <div class="card-body">The left&lt;root&lt;right invariant means each comparison lets you <span class="highlight">throw away half the tree</span>. Pick a target and watch the discarded subtree fade out.</div>
+    </div>
+    <div class="btn-row">
+      <span style="font-size:12px;color:#999;align-self:center;">Search for:</span>
+      <span class="seg" id="bst-seg">
+        <button class="on" onclick="pickTarget(6, this)">6</button>
+        <button onclick="pickTarget(14, this)">14</button>
+        <button onclick="pickTarget(5, this)">5</button>
+      </span>
+    </div>
+    <div class="tree-wrap">
+      <svg viewBox="0 0 340 230" id="bst-svg" aria-label="binary search tree">
+        <line class="edge" data-e="8-3"  x1="170" y1="36"  x2="90"  y2="112"/>
+        <line class="edge" data-e="8-10" x1="170" y1="36"  x2="250" y2="112"/>
+        <line class="edge" data-e="3-1"  x1="90"  y1="112" x2="45"  y2="188"/>
+        <line class="edge" data-e="3-6"  x1="90"  y1="112" x2="135" y2="188"/>
+        <line class="edge" data-e="10-14" x1="250" y1="112" x2="295" y2="188"/>
+        <g class="tnode" data-n="8"><circle cx="170" cy="36"  r="19"/><text x="170" y="42"  text-anchor="middle">8</text></g>
+        <g class="tnode" data-n="3"><circle cx="90"  cy="112" r="19"/><text x="90"  y="118" text-anchor="middle">3</text></g>
+        <g class="tnode" data-n="10"><circle cx="250" cy="112" r="19"/><text x="250" y="118" text-anchor="middle">10</text></g>
+        <g class="tnode" data-n="1"><circle cx="45"  cy="188" r="19"/><text x="45"  y="194" text-anchor="middle">1</text></g>
+        <g class="tnode" data-n="6"><circle cx="135" cy="188" r="19"/><text x="135" y="194" text-anchor="middle">6</text></g>
+        <g class="tnode" data-n="14"><circle cx="295" cy="188" r="19"/><text x="295" y="194" text-anchor="middle">14</text></g>
+      </svg>
+    </div>
+    <div class="status" id="bst-status">Searching for 6. Press Step to descend from the root.</div>
+    <div class="btn-row">
+      <button class="btn primary" onclick="bstStep()">Step →</button>
+      <button class="btn" onclick="bstReset()">Reset</button>
+    </div>
+    <pre class="code" style="margin-top:6px;">TreeNode search(TreeNode root, int t) {
+    while (root != null && root.val != t)
+        root = t &lt; root.val ? root.left : root.right;  <span class="dim">// discard half</span>
+    return root;
+}</pre>
+    <div class="step-box warn" style="margin-top:12px;">
+      <b>Where it rots:</b> insert sorted data <code>1,2,3,4,5</code> and every value goes right — you build a <b>linked list wearing a tree costume</b>. Height becomes N, search degrades to O(N). This is <i>why</i> self-balancing trees (Red-Black, AVL) exist — and why Java's <code>TreeMap</code>/<code>TreeSet</code> guarantee O(log N) while a hand-rolled BST does not.
+    </div>
+  </div>
+
+  <!-- PATTERNS -->
+  <div id="panel-patterns" class="panel">
+    <div class="card">
+      <div class="card-title">~6 patterns, 2 skeletons</div>
+      <div class="card-body">Roughly 90% of binary-tree questions are DFS or BFS with a few extra lines. Recognize the pattern and the code writes itself.</div>
+    </div>
+    <table class="cmp">
+      <tr><th>Pattern</th><th>Move</th><th>Practice</th></tr>
+      <tr><td>Search / Count</td><td>Walk, tally</td><td>Search in BST · Count Complete Tree Nodes</td></tr>
+      <tr><td>Root-to-Leaf path</td><td>Carry state down (preorder)</td><td>Path Sum · Path Sum II · Max Path Sum</td></tr>
+      <tr><td>Build / Modify</td><td>Return the subtree you built</td><td>Invert · Merge Two Trees · Construct from Pre+In</td></tr>
+      <tr><td>Compare two trees ⭐</td><td>Recurse both in lockstep</td><td>Same Tree · Subtree of Another Tree</td></tr>
+      <tr><td>Lowest Common Ancestor</td><td>Postorder, bubble up finds</td><td>LCA of Binary Tree · LCA of BST</td></tr>
+      <tr><td>Validation</td><td>Check a property everywhere</td><td>Validate BST · Balanced · Symmetric</td></tr>
+    </table>
+
+    <p class="section-label" style="margin-top:20px;">How thin the logic really is</p>
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">Invert a tree (Build/Modify)</div>
+        <pre class="code">TreeNode invert(TreeNode n) {
+    if (n == null) return null;
+    TreeNode t = invert(n.left);
+    n.left  = invert(n.right);
+    n.right = t;
+    return n;
+}</pre>
+      </div>
+      <div class="card">
+        <div class="card-title">LCA in a binary tree</div>
+        <pre class="code">TreeNode lca(TreeNode n, p, q) {
+    if (n==null||n==p||n==q) return n;
+    var L = lca(n.left,  p, q);
+    var R = lca(n.right, p, q);
+    if (L!=null && R!=null) return n;
+    return L != null ? L : R;
+}</pre>
+      </div>
+    </div>
+    <div class="step-box good">Both are the DFS skeleton plus three or four problem-specific lines. That's the whole game.</div>
+
+    <p class="section-label" style="margin-top:16px;">The BFS level skeleton (unlocks a whole family)</p>
+    <pre class="code">Queue&lt;TreeNode&gt; q = new ArrayDeque&lt;&gt;();
+q.offer(root);
+while (!q.isEmpty()) {
+    <span class="hl">int size = q.size();</span>          <span class="dim">// freeze THIS level's width</span>
+    for (int i = 0; i &lt; size; i++) {
+        TreeNode node = q.poll();
+        <span class="dim">// process node...</span>
+        if (node.left  != null) q.offer(node.left);
+        if (node.right != null) q.offer(node.right);
+    }
+}</pre>
+    <div class="step-box info" style="margin-top:12px;">
+      That <code>q.size()</code> snapshot separates the rows. Tweak the inner loop and you get <i>Right Side View</i>, <i>Zigzag Level Order</i>, and <i>Average of Levels</i> for free.
+    </div>
+    <p class="section-label" style="margin-top:16px;">The 18-problem checklist</p>
+    <div>
+      <span class="problem-tag">Preorder</span><span class="problem-tag">Inorder</span><span class="problem-tag">Postorder</span><span class="problem-tag">Level Order</span><span class="problem-tag">Max Depth</span><span class="problem-tag">Min Depth</span><span class="problem-tag">Same Tree</span><span class="problem-tag">Subtree ⭐</span><span class="problem-tag">Symmetric</span><span class="problem-tag">Invert</span><span class="problem-tag">Diameter</span><span class="problem-tag">Balanced</span><span class="problem-tag">Path Sum</span><span class="problem-tag">LCA</span><span class="problem-tag">Validate BST</span><span class="problem-tag">Kth Smallest BST</span><span class="problem-tag">Right Side View</span><span class="problem-tag">Zigzag</span>
+    </div>
+  </div>
+</div>
+
+<script>
+function showTab(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+/* ---------- Traversal order demo ---------- */
+const tree = {
+  1: { l: 2, r: 3 }, 2: { l: 4, r: 5 }, 3: { l: null, r: 6 },
+  4: { l: null, r: null }, 5: { l: null, r: null }, 6: { l: null, r: null }
+};
+function pre(id, out){ if(id==null) return; out.push(id); pre(tree[id].l,out); pre(tree[id].r,out); }
+function ino(id, out){ if(id==null) return; ino(tree[id].l,out); out.push(id); ino(tree[id].r,out); }
+function post(id, out){ if(id==null) return; post(tree[id].l,out); post(tree[id].r,out); out.push(id); }
+function level(root){ const out=[], q=[root]; while(q.length){ const n=q.shift(); out.push(n); if(tree[n].l) q.push(tree[n].l); if(tree[n].r) q.push(tree[n].r);} return out; }
+
+const orders = {
+  pre:   { seq: (()=>{const o=[];pre(1,o);return o;})(),   title: 'Preorder rule',   body: 'Process the node the moment you arrive, <i>before</i> descending. That\'s why the root is first.', status: 'Preorder — Root, then Left, then Right.' },
+  in:    { seq: (()=>{const o=[];ino(1,o);return o;})(),   title: 'Inorder rule',    body: 'Go fully left first, process the node, then go right. On a BST this yields sorted order.', status: 'Inorder — Left, then Root, then Right.' },
+  post:  { seq: (()=>{const o=[];post(1,o);return o;})(),  title: 'Postorder rule',  body: 'Finish <i>both</i> subtrees before processing the node — so the root is always last.', status: 'Postorder — Left, then Right, then Root.' },
+  level: { seq: level(1), title: 'Level order (BFS) rule', body: 'Forget left/right depth — visit row by row using a queue. Not part of the pre/in/post family.', status: 'Level order — row by row, top to bottom (BFS).' }
+};
+let curOrder = 'pre', orderIdx = 0, orderTimer = null;
+
+function pickOrder(kind, btn) {
+  clearInterval(orderTimer); orderTimer = null;
+  document.querySelectorAll('#order-seg button').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  curOrder = kind; orderReset();
+}
+function paintOrder() {
+  const seq = orders[curOrder].seq;
+  document.querySelectorAll('#order-svg .tnode').forEach(g => g.classList.remove('current','visited'));
+  const visited = seq.slice(0, orderIdx);
+  visited.forEach(id => document.querySelector('#order-svg [data-n="'+id+'"]').classList.add('visited'));
+  if (orderIdx > 0 && orderIdx <= seq.length) {
+    const cur = seq[orderIdx-1];
+    const g = document.querySelector('#order-svg [data-n="'+cur+'"]');
+    g.classList.remove('visited'); g.classList.add('current');
+  }
+  const seqEl = document.getElementById('order-seq'); seqEl.innerHTML = '';
+  seq.forEach((id, i) => {
+    const c = document.createElement('div');
+    c.className = 'seq-chip' + (i >= orderIdx ? ' pending' : '');
+    c.textContent = i < orderIdx ? id : '?';
+    seqEl.appendChild(c);
+  });
+}
+function orderStep() {
+  const seq = orders[curOrder].seq;
+  if (orderIdx >= seq.length) { clearInterval(orderTimer); orderTimer=null; return; }
+  orderIdx++; paintOrder();
+  const st = document.getElementById('order-status');
+  if (orderIdx >= seq.length) st.innerHTML = '<span style="color:#3B6D11">✓ Done — visit order: [' + seq.join(', ') + ']</span>';
+  else st.textContent = 'Visited ' + seq[orderIdx-1] + '  ·  ' + orderIdx + ' of ' + seq.length;
+}
+function orderPlay() {
+  if (orderTimer) { clearInterval(orderTimer); orderTimer=null; return; }
+  if (orderIdx >= orders[curOrder].seq.length) orderReset();
+  orderTimer = setInterval(() => {
+    if (orderIdx >= orders[curOrder].seq.length) { clearInterval(orderTimer); orderTimer=null; return; }
+    orderStep();
+  }, 750);
+}
+function orderReset() {
+  clearInterval(orderTimer); orderTimer=null; orderIdx = 0; paintOrder();
+  const o = orders[curOrder];
+  document.getElementById('order-status').textContent = o.status + ' Press Step.';
+  document.getElementById('order-rule-title').innerHTML = o.title;
+  document.getElementById('order-rule-body').innerHTML = o.body;
+}
+orderReset();
+
+/* ---------- Recursion code toggle ---------- */
+const recCode = {
+  pre: `void dfs(TreeNode node) {
+    if (node == null) return;
+    <span class="hl">process(node);</span>   <span class="dim">// PRE: before children</span>
+    dfs(node.left);
+    dfs(node.right);
+}`,
+  in: `void dfs(TreeNode node) {
+    if (node == null) return;
+    dfs(node.left);
+    <span class="hl">process(node);</span>   <span class="dim">// IN: between children</span>
+    dfs(node.right);
+}`,
+  post: `void dfs(TreeNode node) {
+    if (node == null) return;
+    dfs(node.left);
+    dfs(node.right);
+    <span class="hl">process(node);</span>   <span class="dim">// POST: after children</span>
+}`
+};
+function pickRec(kind, btn) {
+  document.querySelectorAll('#rec-seg button').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('rec-code').innerHTML = recCode[kind];
+}
+document.getElementById('rec-code').innerHTML = recCode.pre;
+
+/* ---------- BST search demo ---------- */
+const bst = {
+  8: { l: 3, r: 10 }, 3: { l: 1, r: 6 }, 10: { l: null, r: 14 },
+  1: { l: null, r: null }, 6: { l: null, r: null }, 14: { l: null, r: null }
+};
+function subtree(id, acc){ if(id==null) return; acc.push(id); subtree(bst[id].l,acc); subtree(bst[id].r,acc); }
+let bstTarget = 6, bstCur = 8, bstDone = false;
+
+function pickTarget(t, btn) {
+  document.querySelectorAll('#bst-seg button').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  bstTarget = t; bstReset();
+}
+function bstPaint() {
+  document.querySelectorAll('#bst-svg .tnode').forEach(g => g.classList.remove('current','visited','dead'));
+  document.querySelectorAll('#bst-svg .edge').forEach(e => e.classList.remove('dead'));
+}
+function bstStep() {
+  if (bstDone) { bstReset(); return; }
+  const st = document.getElementById('bst-status');
+  if (bstCur == null) {
+    bstDone = true;
+    st.innerHTML = '<span style="color:#993C1D">✗ Fell off the tree — ' + bstTarget + ' is not present.</span>';
+    return;
+  }
+  document.querySelector('#bst-svg [data-n="'+bstCur+'"]').classList.remove('current');
+  document.querySelector('#bst-svg [data-n="'+bstCur+'"]').classList.add('current');
+
+  if (bstCur === bstTarget) {
+    bstDone = true;
+    document.querySelector('#bst-svg [data-n="'+bstCur+'"]').classList.add('visited');
+    st.innerHTML = '<span style="color:#3B6D11">✓ Found ' + bstTarget + ' at this node.</span>';
+    return;
+  }
+  const goLeft = bstTarget < bstCur;
+  const drop = goLeft ? bst[bstCur].r : bst[bstCur].l;
+  const dead = []; subtree(drop, dead);
+  dead.forEach(id => document.querySelector('#bst-svg [data-n="'+id+'"]').classList.add('dead'));
+  // fade the edge to the discarded child
+  const deadEdge = document.querySelector('#bst-svg [data-e="'+bstCur+'-'+drop+'"]');
+  if (deadEdge) deadEdge.classList.add('dead');
+  document.querySelector('#bst-svg [data-n="'+bstCur+'"]').classList.add('visited');
+
+  st.innerHTML = bstTarget + (goLeft ? ' &lt; ' : ' &gt; ') + bstCur + ' → go ' + (goLeft ? 'left' : 'right') + ', discard the ' + (goLeft ? 'right' : 'left') + ' subtree.';
+  bstCur = goLeft ? bst[bstCur].l : bst[bstCur].r;
+}
+function bstReset() {
+  bstCur = 8; bstDone = false; bstPaint();
+  document.getElementById('bst-status').textContent = 'Searching for ' + bstTarget + '. Press Step to descend from the root.';
+}
+bstReset();
+</script>
+</body>
+</html>
