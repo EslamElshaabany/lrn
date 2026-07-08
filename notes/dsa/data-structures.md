@@ -1,4 +1,8 @@
-# 🧱 Java Data Structures — The Mental Model
+---
+title: Data Structures — The Mental Model
+topic: dsa
+---
+
 
 > Not a reference. A story.
 > Every structure here exists because someone hit a wall with the previous one.

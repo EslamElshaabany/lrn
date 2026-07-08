@@ -1,0 +1,34 @@
+title: lrn — learning notes
+description: Java, Spring & DSA study notes and interactive guides.
+lang: en
+
+# Pretty, kramdown-rendered markdown. GitHub Pages enables jekyll-relative-links
+# by default, so [text](oop.md) links between notes resolve on the web too.
+# Resolve [text](oop.md) links between notes to their built .html paths.
+# GitHub Pages enables this automatically; listing it also makes standalone
+# `jekyll build` (Jekyll 4) work the same way locally.
+plugins:
+  - jekyll-relative-links
+
+markdown: kramdown
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+
+# Apply the dark "note" layout to every markdown file under notes/ so we don't
+# repeat `layout:` in each file's front matter (front matter is still required
+# for Jekyll to process the file at all).
+defaults:
+  - scope:
+      path: "notes"
+    values:
+      layout: note
+
+# Keep repo meta files off the published site.
+exclude:
+  - CLAUDE.md
+  - README.md
+  - Gemfile
+  - Gemfile.lock
+  - vendor
+  - .claude

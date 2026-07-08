@@ -1,7 +1,10 @@
-# ☕ Java OOP Cheat Sheet
+---
+title: Java OOP
+topic: java
+---
 
 > Core object-oriented concepts: inheritance, interfaces, overriding, and more.
-> Design patterns and annotations → see `Java_Patterns.md`.
+> Design patterns and annotations → see [Design Patterns](design-patterns.md).
 
 ---
 

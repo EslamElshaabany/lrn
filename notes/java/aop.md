@@ -1,4 +1,8 @@
-# ☕ AOP in Spring Boot — Aspect-Oriented Programming
+---
+title: AOP in Spring Boot
+topic: java · spring
+---
+
 
 > Cross-cutting concerns explained: what AOP is, why it exists, how Spring implements it,
 > and how `@RestControllerAdvice` fits in as a specialized AOP feature.
@@ -315,6 +319,6 @@ AOP only works on beans managed by Spring. `new MyService()` gets no proxy.
 
 | Topic | File |
 |---|---|
-| Design patterns (Strategy, Decorator, etc.) | `Java_Patterns.md` |
-| Spring Boot jargon (IoC, DI, Bean) | `Java_Spring_Glossary.md` |
-| OOP fundamentals | `Java_OOP.md` |
+| Design patterns (Strategy, Decorator, etc.) | [design-patterns.md](design-patterns.md) |
+| Spring Boot jargon (IoC, DI, Bean) | [spring-glossary.md](spring-glossary.md) |
+| OOP fundamentals | [oop.md](oop.md) |

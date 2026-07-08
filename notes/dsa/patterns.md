@@ -1,4 +1,8 @@
-# 🧠 Java DSA Cheat Sheet — LeetCode Edition
+---
+title: DSA Cheat Sheet — LeetCode Edition
+topic: dsa
+---
+
 
 > Organized by frequency of use. Each section covers: when to use it, key operations with complexities, and the LeetCode patterns it unlocks.
 

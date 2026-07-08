@@ -1,4 +1,8 @@
-# ☕ Java Classes — Pre-OOP Fundamentals
+---
+title: Java Classes
+topic: java
+---
+
 
 > Everything about how a class is built before inheritance and polymorphism enter the picture.
 > Covers: access modifiers, constructors, initializer blocks, `this`, `static`, `final`,

@@ -1,7 +1,10 @@
-# ☕ Java Design Patterns & Annotations
+---
+title: Design Patterns & Annotations
+topic: java
+---
 
 > Quick-reference for the most common GoF patterns and Java annotation mechanics.
-> OOP fundamentals (inheritance, interfaces, etc.) → see `Java_OOP.md`.
+> OOP fundamentals (inheritance, interfaces, etc.) → see [Java OOP](oop.md).
 
 ---
 

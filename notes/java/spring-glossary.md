@@ -1,4 +1,8 @@
-# ☕ Java & Spring Boot — Terms & Buzzwords
+---
+title: Spring Glossary
+topic: java · spring
+---
+
 
 > A plain-English glossary of the jargon you'll hear constantly.
 > Grouped by theme so related terms build on each other.

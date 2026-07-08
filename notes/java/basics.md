@@ -1,4 +1,8 @@
-# ☕ Java Basics
+---
+title: Java Basics
+topic: java · fundamentals
+---
+
 
 > A personal notebook-style refresher covering Java fundamentals:
 > memory model, variables, strings, control flow, and more.

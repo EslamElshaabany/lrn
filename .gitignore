@@ -1,0 +1,7 @@
+_site/
+.jekyll-cache/
+.jekyll-metadata
+vendor/
+.bundle/
+# Resolved locally under Ruby 3.4; let GitHub Pages resolve in its own env.
+Gemfile.lock
