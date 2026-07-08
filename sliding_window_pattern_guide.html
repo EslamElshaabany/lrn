@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sliding Window Pattern Guide</title>
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; padding: 16px; font-family: system-ui, sans-serif; background: #fff; color: #1a1a1a; }
+@media (prefers-color-scheme: dark) { body { background: #1a1a1a; color: #e0e0e0; } }
+.tab-bar { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+.tab { padding: 6px 14px; border-radius: 8px; border: 0.5px solid #ccc; background: transparent; cursor: pointer; font-size: 13px; color: #666; transition: all .2s; }
+.tab.active { background: #f0f0f0; color: #1a1a1a; border-color: #888; font-weight: 500; }
+@media (prefers-color-scheme: dark) { .tab { border-color: #444; color: #aaa; } .tab.active { background: #2a2a2a; color: #e0e0e0; border-color: #888; } }
+.panel { display: none; }
+.panel.active { display: block; }
+.section-label { font-size: 11px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: #999; margin: 0 0 10px; }
+.card { background: #fff; border: 0.5px solid #e0e0e0; border-radius: 12px; padding: 16px 20px; margin-bottom: 14px; }
+@media (prefers-color-scheme: dark) { .card { background: #222; border-color: #333; } }
+.card-title { font-size: 14px; font-weight: 500; margin: 0 0 6px; }
+.card-body { font-size: 13px; color: #666; line-height: 1.6; }
+@media (prefers-color-scheme: dark) { .card-body { color: #aaa; } }
+.array-row { display: flex; gap: 6px; align-items: flex-end; flex-wrap: wrap; margin: 14px 0; }
+.cell { width: 40px; height: 40px; border: 1.5px solid #ccc; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 500; transition: all .3s; position: relative; flex-shrink: 0; }
+.cell.left-ptr { background: #E6F1FB; border-color: #378ADD; color: #042C53; }
+.cell.right-ptr { background: #FAECE7; border-color: #D85A30; color: #4A1B0C; }
+.cell.in-win { background: #F3F7EC; border-color: #A9C97F; color: #2E4E10; }
+@media (prefers-color-scheme: dark) { .cell.in-win { background: #26301a; border-color: #4d6a26; color: #cfe6a8; } }
+.cell.match { background: #EAF3DE; border-color: #639922; color: #173404; }
+.cell.skip { opacity: .3; }
+.ptr-label { font-size: 10px; font-weight: 500; text-align: center; margin-top: 3px; color: #999; }
+.ptr-wrap { display: flex; flex-direction: column; align-items: center; }
+.btn { padding: 7px 16px; border-radius: 8px; border: 0.5px solid #ccc; background: transparent; cursor: pointer; font-size: 13px; transition: all .15s; }
+.btn:hover { background: #f0f0f0; }
+@media (prefers-color-scheme: dark) { .btn { border-color: #444; color: #e0e0e0; } .btn:hover { background: #2a2a2a; } }
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
+.status { font-size: 13px; color: #666; min-height: 20px; margin: 6px 0; }
+.badge { display: inline-block; font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 20px; }
+.badge-blue { background: #E6F1FB; color: #0C447C; }
+.badge-coral { background: #FAECE7; color: #993C1D; }
+.badge-green { background: #EAF3DE; color: #3B6D11; }
+.badge-amber { background: #FAEEDA; color: #854F0B; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 500px) { .two-col { grid-template-columns: 1fr; } }
+.step-box { background: #f5f5f5; border-radius: 8px; padding: 12px 14px; font-size: 13px; color: #666; line-height: 1.6; border-left: 3px solid #ccc; }
+@media (prefers-color-scheme: dark) { .step-box { background: #252525; color: #aaa; } }
+.step-box.info { border-left-color: #378ADD; }
+.step-box.warn { border-left-color: #EF9F27; }
+.step-box.good { border-left-color: #639922; }
+.problem-tag { display: inline-block; font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 20px; margin: 2px; background: #f5f5f5; color: #666; border: 0.5px solid #e0e0e0; }
+@media (prefers-color-scheme: dark) { .problem-tag { background: #2a2a2a; color: #aaa; border-color: #333; } }
+table.cmp { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.cmp th { text-align: left; color: #999; font-weight: 500; font-size: 11px; letter-spacing: .05em; text-transform: uppercase; padding: 0 10px 8px 0; }
+table.cmp td { padding: 7px 10px 7px 0; vertical-align: top; border-top: 0.5px solid #e0e0e0; color: #666; line-height: 1.5; }
+@media (prefers-color-scheme: dark) { table.cmp td { border-color: #333; color: #aaa; } }
+table.cmp td:first-child { font-weight: 500; color: #1a1a1a; white-space: nowrap; }
+@media (prefers-color-scheme: dark) { table.cmp td:first-child { color: #e0e0e0; } }
+.highlight { color: #1a1a1a; font-weight: 500; }
+@media (prefers-color-scheme: dark) { .highlight { color: #e0e0e0; } }
+pre.code { background: #f5f5f5; border-radius: 8px; padding: 12px 14px; font-size: 12px; line-height: 1.55; overflow-x: auto; font-family: ui-monospace, "SF Mono", Menlo, monospace; color: #1a1a1a; margin: 10px 0 0; }
+@media (prefers-color-scheme: dark) { pre.code { background: #181818; color: #d4d4d4; } }
+pre.code .cm { color: #999; }
+pre.code .kw { color: #b5155e; } @media (prefers-color-scheme: dark) { pre.code .kw { color: #ff7ab2; } }
+.backlink { display: inline-block; font-size: 12px; color: #999; text-decoration: none; margin-bottom: 14px; }
+.backlink:hover { color: #666; }
+.win-sum { margin-left: 16px; font-size: 12px; color: #999; align-self: center; }
+</style>
+</head>
+<body>
+<div style="padding: 4px 0 0;">
+  <a href="index.html" class="backlink">← All guides</a>
+  <div class="tab-bar">
+    <button class="tab active" onclick="showTab('model')">The mental model</button>
+    <button class="tab" onclick="showTab('fixed')">Fixed window</button>
+    <button class="tab" onclick="showTab('longest')">Variable · longest</button>
+    <button class="tab" onclick="showTab('shortest')">Variable · shortest</button>
+    <button class="tab" onclick="showTab('recognize')">How to recognize</button>
+  </div>
+
+  <!-- MENTAL MODEL -->
+  <div id="panel-model" class="panel active">
+    <div class="card">
+      <div class="card-title">The core idea</div>
+      <div class="card-body">A sliding window is <span class="highlight">a contiguous range you carry across the array instead of recomputing</span>. The brute-force way re-sums every subarray from scratch — O(n·k) or O(n²). But consecutive windows overlap almost entirely: when you move one step right, only <span class="highlight">one element leaves and one enters</span>. Reuse that overlap and you drop to <span class="highlight">O(n)</span>, each element added once and removed at most once.</div>
+    </div>
+    <p class="section-label">Two flavours</p>
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">▭ Fixed window</div>
+        <div class="card-body" style="margin-bottom:10px;">The width <b>k</b> is given and never changes. Slide it one step at a time: subtract the element that <span class="badge badge-blue">leaves</span>, add the one that <span class="badge badge-coral">enters</span>.</div>
+        <div class="problem-tag">Max sum size k</div>
+        <div class="problem-tag">Average of subarrays</div>
+        <div class="problem-tag">Anagrams in a string</div>
+        <div class="problem-tag">Sliding window max</div>
+      </div>
+      <div class="card">
+        <div class="card-title">↔ Variable window</div>
+        <div class="card-body" style="margin-bottom:10px;">Width is <b>unknown</b> — it's what you're solving for. <span class="badge badge-coral">right</span> expands the window; <span class="badge badge-blue">left</span> shrinks it whenever a constraint is broken (longest) or already satisfied (shortest).</div>
+        <div class="problem-tag">Longest no-repeat</div>
+        <div class="problem-tag">Min subarray ≥ target</div>
+        <div class="problem-tag">Longest ≤ k distinct</div>
+        <div class="problem-tag">Fruit into baskets</div>
+      </div>
+    </div>
+    <p class="section-label" style="margin-top:16px;">Fixed vs variable at a glance</p>
+    <table class="cmp">
+      <tr><th></th><th>Fixed</th><th>Variable</th></tr>
+      <tr><td>Window width</td><td>Constant k, given</td><td>Grows / shrinks with a condition</td></tr>
+      <tr><td>What moves</td><td>Both edges together, in lockstep</td><td>right always; left only on the condition</td></tr>
+      <tr><td>You track</td><td>A running aggregate (sum, count)</td><td>Aggregate + best length seen so far</td></tr>
+      <tr><td>Answer is</td><td>Best value over all k-windows</td><td>Longest / shortest valid window</td></tr>
+    </table>
+    <div class="step-box info" style="margin-top:16px;">
+      <b>Recognise it when…</b> the problem says <b>"contiguous"</b> subarray / substring and asks for a max, min, longest, shortest, or count over a range. Contiguity is the tell — if elements can be reordered or skipped, it's not a window.
+    </div>
+  </div>
+
+  <!-- FIXED WINDOW -->
+  <div id="panel-fixed" class="panel">
+    <div class="card">
+      <div class="card-title">Pattern: slide a fixed width, reuse the overlap</div>
+      <div class="card-body">Compute the first window's sum the slow way — once. After that, every slide is <b>two operations</b>: subtract the element leaving on the left, add the element entering on the right. No re-summing. n windows, O(1) work each → <span class="highlight">O(n)</span> total.</div>
+    </div>
+    <p class="section-label">Interactive — max sum subarray of size k (k = 3)</p>
+    <div id="demo-fixed">
+      <div class="array-row" id="fw-row"></div>
+      <div class="status" id="fw-status">Press step to build the first window.</div>
+      <div class="btn-row">
+        <button class="btn" onclick="fwStep()">Step →</button>
+        <button class="btn" onclick="fwReset()">Reset</button>
+      </div>
+    </div>
+    <div class="step-box info" style="margin-top:14px;">
+      <b>Decision rule (fixed):</b><br>
+      Seed the first window by summing k elements. Then for each new position: <b>sum += arr[right]; sum −= arr[left]</b>, advance both edges, and update your best. The whole array is scanned exactly once.
+    </div>
+  </div>
+
+  <!-- VARIABLE LONGEST -->
+  <div id="panel-longest" class="panel">
+    <div class="card">
+      <div class="card-title">Pattern: expand greedily, shrink only when invalid</div>
+      <div class="card-body"><span class="badge badge-coral">right</span> pushes forward every chance it gets, growing the window. The moment the window breaks its rule (here: a repeated character), <span class="badge badge-blue">left</span> shrinks from the back until it's valid again. Record the best length whenever the window is valid.</div>
+    </div>
+    <p class="section-label">Interactive — longest substring without repeating characters</p>
+    <div id="demo-longest">
+      <div class="array-row" id="lw-row"></div>
+      <div class="status" id="lw-status">Press step. right examines the next char; left shrinks past duplicates.</div>
+      <div class="btn-row">
+        <button class="btn" onclick="lwStep()">Step →</button>
+        <button class="btn" onclick="lwReset()">Reset</button>
+      </div>
+    </div>
+    <div class="step-box info" style="margin-top:14px;">
+      <b>Decision rule (longest):</b><br>
+      Try to add <b>arr[right]</b>. If it keeps the window valid → add it, then update best = max(best, right − left + 1). If it breaks validity → shrink from the left until it's valid again, <em>then</em> add. The answer is the largest valid window ever seen.
+    </div>
+  </div>
+
+  <!-- VARIABLE SHORTEST -->
+  <div id="panel-shortest" class="panel">
+    <div class="card">
+      <div class="card-title">Pattern: expand until valid, then squeeze</div>
+      <div class="card-body">Mirror image of "longest". Here validity is a target you must <b>reach</b> (sum ≥ target). <span class="badge badge-coral">right</span> expands until the window is valid, then <span class="badge badge-blue">left</span> shrinks as far as it can while <em>staying</em> valid — recording the smallest valid width each time.</div>
+    </div>
+    <p class="section-label">Interactive — minimum length subarray with sum ≥ 7</p>
+    <div id="demo-shortest">
+      <div class="array-row" id="mw-row"></div>
+      <div class="status" id="mw-status">Press step. right adds until sum ≥ target; left shrinks while still ≥ target.</div>
+      <div class="btn-row">
+        <button class="btn" onclick="mwStep()">Step →</button>
+        <button class="btn" onclick="mwReset()">Reset</button>
+      </div>
+    </div>
+    <div class="step-box info" style="margin-top:14px;">
+      <b>Decision rule (shortest):</b><br>
+      If the window is <b>not yet valid</b> → expand right. If it <b>is valid</b> → record best = min(best, width), then shrink left to look for something tighter. Stop when right runs off the end and the window can't be made valid again.
+    </div>
+  </div>
+
+  <!-- RECOGNIZE -->
+  <div id="panel-recognize" class="panel">
+    <div class="card">
+      <div class="card-title">How to recognize a sliding-window problem</div>
+      <div class="card-body">Three questions to run through when you see an array or string problem:</div>
+    </div>
+    <div class="step-box info" style="margin-bottom:10px;">
+      <b>1. Is the answer a contiguous run?</b><br>
+      "Subarray", "substring", "consecutive", "window of size k" → contiguous → window. If the problem lets you skip or reorder elements, it's not.
+    </div>
+    <div class="step-box info" style="margin-bottom:10px;">
+      <b>2. Is the width given or unknown?</b><br>
+      Given a fixed k → fixed window (lockstep slide). Asking for the longest/shortest range that satisfies a rule → variable window (expand/shrink).
+    </div>
+    <div class="step-box info" style="margin-bottom:10px;">
+      <b>3. Can I maintain the window incrementally?</b><br>
+      Can one element entering and one leaving update your state in O(1)–O(log n)? A running sum, a char-count map, or a monotonic deque all qualify.
+    </div>
+    <p class="section-label" style="margin-top:16px;">Template skeletons</p>
+    <pre class="code"><span class="cm">// Fixed window of size k</span>
+<span class="kw">int</span> sum = 0, best = 0;
+<span class="kw">for</span> (<span class="kw">int</span> r = 0; r &lt; n; r++) {
+    sum += a[r];
+    <span class="kw">if</span> (r &gt;= k - 1) {
+        best = Math.max(best, sum);
+        sum -= a[r - k + 1];   <span class="cm">// element leaving on the left</span>
+    }
+}</pre>
+    <pre class="code"><span class="cm">// Variable window — longest valid</span>
+<span class="kw">int</span> left = 0, best = 0;
+<span class="kw">for</span> (<span class="kw">int</span> right = 0; right &lt; n; right++) {
+    add(a[right]);
+    <span class="kw">while</span> (!valid())        <span class="cm">// broke the rule → shrink</span>
+        remove(a[left++]);
+    best = Math.max(best, right - left + 1);
+}</pre>
+    <pre class="code"><span class="cm">// Variable window — shortest valid</span>
+<span class="kw">int</span> left = 0, sum = 0, best = Integer.MAX_VALUE;
+<span class="kw">for</span> (<span class="kw">int</span> right = 0; right &lt; n; right++) {
+    sum += a[right];
+    <span class="kw">while</span> (sum &gt;= target) {   <span class="cm">// valid → record & squeeze</span>
+        best = Math.min(best, right - left + 1);
+        sum -= a[left++];
+    }
+}</pre>
+    <p class="section-label" style="margin-top:16px;">Classic problems</p>
+    <div>
+      <span class="problem-tag">Maximum sum subarray of size k</span>
+      <span class="problem-tag">Longest substring without repeating characters</span>
+      <span class="problem-tag">Minimum size subarray sum</span>
+      <span class="problem-tag">Longest substring with at most k distinct</span>
+      <span class="problem-tag">Permutation in string</span>
+      <span class="problem-tag">Find all anagrams in a string</span>
+      <span class="problem-tag">Fruit into baskets</span>
+      <span class="problem-tag">Max consecutive ones III</span>
+      <span class="problem-tag">Sliding window maximum</span>
+      <span class="problem-tag">Minimum window substring</span>
+    </div>
+    <div class="step-box good" style="margin-top:16px;">
+      <b>Related notes:</b> the <b>sliding window maximum</b> variant (a fixed window whose max you track with a monotonic deque) lives in <span class="highlight">Java_DSA_Patterns.md</span> §13. For the same-direction two-pointer roots of this pattern, see <span class="highlight">two_pointers_pattern_guide.html</span>.
+    </div>
+  </div>
+</div>
+
+<script>
+function showTab(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+/* ---------- Demo 1: fixed window, max sum size k ---------- */
+const fwArr = [2, 1, 5, 1, 3, 2];
+const fwK = 3;
+let fwStart = 0, fwSum = 0, fwBest = -Infinity, fwBestStart = 0, fwStarted = false, fwDone = false;
+function fwWinSum(start) { let s = 0; for (let i = start; i < start + fwK; i++) s += fwArr[i]; return s; }
+function fwRender() {
+  const row = document.getElementById('fw-row');
+  row.innerHTML = '';
+  const end = fwStart + fwK - 1;
+  const bEnd = fwBestStart + fwK - 1;
+  for (let i = 0; i < fwArr.length; i++) {
+    const wrap = document.createElement('div'); wrap.className = 'ptr-wrap';
+    const cell = document.createElement('div');
+    let cls = 'cell';
+    if (fwDone) { cls += (i >= fwBestStart && i <= bEnd) ? ' match' : ' skip'; }
+    else if (!fwStarted) { cls += ' skip'; }
+    else if (i === fwStart) cls += ' left-ptr';
+    else if (i === end) cls += ' right-ptr';
+    else if (i > fwStart && i < end) cls += ' in-win';
+    else cls += ' skip';
+    cell.className = cls; cell.textContent = fwArr[i];
+    const lbl = document.createElement('div'); lbl.className = 'ptr-label';
+    if (!fwDone && fwStarted) { if (i === fwStart) lbl.textContent = 'L'; else if (i === end) lbl.textContent = 'R'; }
+    wrap.appendChild(cell); wrap.appendChild(lbl); row.appendChild(wrap);
+  }
+  if (fwStarted) {
+    const info = document.createElement('div'); info.className = 'win-sum';
+    info.innerHTML = fwDone
+      ? 'best = <b>' + fwBest + '</b>'
+      : 'window sum = <b>' + fwSum + '</b> · best = <b>' + fwBest + '</b>';
+    row.appendChild(info);
+  }
+}
+function fwStep() {
+  if (fwDone) { fwReset(); return; }
+  const s = document.getElementById('fw-status');
+  if (!fwStarted) {
+    fwStarted = true; fwSum = fwWinSum(fwStart); fwBest = fwSum; fwBestStart = fwStart;
+    s.innerHTML = 'First window [0..' + (fwK - 1) + '] summed the slow way = <b>' + fwSum + '</b>. Best = ' + fwBest + '.';
+    fwRender(); return;
+  }
+  if (fwStart + fwK <= fwArr.length - 1) {
+    const leaving = fwArr[fwStart], entering = fwArr[fwStart + fwK];
+    fwSum += entering - leaving; fwStart++;
+    let msg = 'Slide → −' + leaving + ' leaves, +' + entering + ' enters → sum = <b>' + fwSum + '</b>. ';
+    if (fwSum > fwBest) { fwBest = fwSum; fwBestStart = fwStart; msg += '<span style="color:#3B6D11">New best!</span>'; }
+    else msg += 'Best stays ' + fwBest + '.';
+    s.innerHTML = msg; fwRender(); return;
+  }
+  fwDone = true; fwRender();
+  s.innerHTML = '<span style="color:#3B6D11">✓ Max window sum = ' + fwBest + ' at [' + fwBestStart + '..' + (fwBestStart + fwK - 1) + ']</span>';
+}
+function fwReset() {
+  fwStart = 0; fwSum = 0; fwBest = -Infinity; fwBestStart = 0; fwStarted = false; fwDone = false;
+  fwRender(); document.getElementById('fw-status').textContent = 'Press step to build the first window.';
+}
+fwReset();
+
+/* ---------- Demo 2: variable window, longest substring without repeats ---------- */
+const lwStr = "abcabcbb";
+let lwLeft = 0, lwRight = 0, lwSet = new Set(), lwBest = 0, lwBestL = 0, lwBestR = -1, lwDone = false;
+function lwRender() {
+  const row = document.getElementById('lw-row');
+  row.innerHTML = '';
+  for (let i = 0; i < lwStr.length; i++) {
+    const wrap = document.createElement('div'); wrap.className = 'ptr-wrap';
+    const cell = document.createElement('div');
+    let cls = 'cell';
+    if (lwDone) { cls += (i >= lwBestL && i <= lwBestR) ? ' match' : ' skip'; }
+    else if (i === lwRight) cls += ' right-ptr';                 // char being examined
+    else if (i === lwLeft && lwLeft < lwRight) cls += ' left-ptr';
+    else if (i > lwLeft && i < lwRight) cls += ' in-win';
+    else if (i === lwLeft && lwLeft === lwRight) cls += '';       // empty window start
+    else cls += ' skip';
+    cell.className = cls; cell.textContent = lwStr[i];
+    const lbl = document.createElement('div'); lbl.className = 'ptr-label';
+    if (!lwDone) { if (i === lwRight) lbl.textContent = 'R'; else if (i === lwLeft && lwLeft < lwRight) lbl.textContent = 'L'; }
+    wrap.appendChild(cell); wrap.appendChild(lbl); row.appendChild(wrap);
+  }
+  const info = document.createElement('div'); info.className = 'win-sum';
+  info.innerHTML = 'longest = <b>' + lwBest + '</b>';
+  row.appendChild(info);
+}
+function lwStep() {
+  if (lwDone) { lwReset(); return; }
+  const s = document.getElementById('lw-status');
+  if (lwRight >= lwStr.length) {
+    lwDone = true; lwRender();
+    s.innerHTML = '<span style="color:#3B6D11">✓ Longest without repeats = ' + lwBest + ' ("' + lwStr.slice(lwBestL, lwBestR + 1) + '")</span>';
+    return;
+  }
+  const ch = lwStr[lwRight];
+  if (lwSet.has(ch)) {
+    s.innerHTML = '"' + ch + '" already in window → shrink: drop "' + lwStr[lwLeft] + '" at left';
+    lwSet.delete(lwStr[lwLeft]); lwLeft++;
+  } else {
+    lwSet.add(ch);
+    const len = lwRight - lwLeft + 1;
+    let msg = '"' + ch + '" is new → expand, window "' + lwStr.slice(lwLeft, lwRight + 1) + '" (len ' + len + '). ';
+    if (len > lwBest) { lwBest = len; lwBestL = lwLeft; lwBestR = lwRight; msg += '<span style="color:#3B6D11">New longest!</span>'; }
+    else msg += 'Longest stays ' + lwBest + '.';
+    s.innerHTML = msg; lwRight++;
+  }
+  lwRender();
+}
+function lwReset() {
+  lwLeft = 0; lwRight = 0; lwSet = new Set(); lwBest = 0; lwBestL = 0; lwBestR = -1; lwDone = false;
+  lwRender(); document.getElementById('lw-status').textContent = 'Press step. right examines the next char; left shrinks past duplicates.';
+}
+lwReset();
+
+/* ---------- Demo 3: variable window, shortest subarray with sum >= target ---------- */
+const mwArr = [2, 3, 1, 2, 4, 3];
+const mwTarget = 7;
+let mwLeft = 0, mwRight = 0, mwSum = 0, mwBest = Infinity, mwBestL = 0, mwBestR = -1, mwDone = false;
+function mwRender() {
+  const row = document.getElementById('mw-row');
+  row.innerHTML = '';
+  const end = mwRight - 1; // current window is [mwLeft, mwRight-1]
+  for (let i = 0; i < mwArr.length; i++) {
+    const wrap = document.createElement('div'); wrap.className = 'ptr-wrap';
+    const cell = document.createElement('div');
+    let cls = 'cell';
+    if (mwDone) { cls += (mwBestR >= mwBestL && i >= mwBestL && i <= mwBestR) ? ' match' : ' skip'; }
+    else if (i >= mwLeft && i <= end) {
+      if (i === mwLeft && i === end) cls += ' match';
+      else if (i === mwLeft) cls += ' left-ptr';
+      else if (i === end) cls += ' right-ptr';
+      else cls += ' in-win';
+    } else cls += ' skip';
+    cell.className = cls; cell.textContent = mwArr[i];
+    const lbl = document.createElement('div'); lbl.className = 'ptr-label';
+    if (!mwDone && i >= mwLeft && i <= end) {
+      if (i === mwLeft && i === end) lbl.textContent = 'L=R';
+      else if (i === mwLeft) lbl.textContent = 'L';
+      else if (i === end) lbl.textContent = 'R';
+    }
+    wrap.appendChild(cell); wrap.appendChild(lbl); row.appendChild(wrap);
+  }
+  const info = document.createElement('div'); info.className = 'win-sum';
+  info.innerHTML = mwDone
+    ? 'shortest = <b>' + (mwBest === Infinity ? '∞' : mwBest) + '</b>'
+    : 'sum = <b>' + mwSum + '</b> · shortest = <b>' + (mwBest === Infinity ? '∞' : mwBest) + '</b>';
+  row.appendChild(info);
+}
+function mwStep() {
+  if (mwDone) { mwReset(); return; }
+  const s = document.getElementById('mw-status');
+  if (mwSum >= mwTarget) {
+    const len = mwRight - mwLeft;
+    let msg = 'sum ' + mwSum + ' ≥ ' + mwTarget + ' → window len ' + len + '. ';
+    if (len < mwBest) { mwBest = len; mwBestL = mwLeft; mwBestR = mwRight - 1; msg += '<span style="color:#3B6D11">New shortest!</span> '; }
+    msg += 'Shrink: drop ' + mwArr[mwLeft] + ' at left.';
+    mwSum -= mwArr[mwLeft]; mwLeft++;
+    s.innerHTML = msg; mwRender(); return;
+  }
+  if (mwRight < mwArr.length) {
+    s.innerHTML = 'sum ' + mwSum + ' &lt; ' + mwTarget + ' → expand: add ' + mwArr[mwRight] + ' at right.';
+    mwSum += mwArr[mwRight]; mwRight++;
+    mwRender(); return;
+  }
+  mwDone = true; mwRender();
+  s.innerHTML = mwBest === Infinity
+    ? '<span style="color:#993C1D">✗ No subarray reaches ' + mwTarget + '.</span>'
+    : '<span style="color:#3B6D11">✓ Shortest subarray with sum ≥ ' + mwTarget + ' has length ' + mwBest + '.</span>';
+}
+function mwReset() {
+  mwLeft = 0; mwRight = 0; mwSum = 0; mwBest = Infinity; mwBestL = 0; mwBestR = -1; mwDone = false;
+  mwRender(); document.getElementById('mw-status').textContent = 'Press step. right adds until sum ≥ target; left shrinks while still ≥ target.';
+}
+mwReset();
+</script>
+</body>
+</html>
