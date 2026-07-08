@@ -21,6 +21,7 @@ topic: index
 
 - [Data Structures — The Mental Model](dsa/data-structures.md) — why each structure exists
 - [DSA Cheat Sheet](dsa/patterns.md) — LeetCode patterns by frequency
+- [Recursion — Thinking in Terms of Itself](dsa/recursion.md) — the call stack, iterative↔recursive, backtracking, divide & conquer, the DP bridge
 - [Binary Trees — DFS & BFS](dsa/binary-trees.md) — traversals, BST invariant, the DFS/BFS patterns
 
 Looking for the interactive pattern walkthroughs? See the

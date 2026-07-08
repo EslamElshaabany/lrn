@@ -329,6 +329,9 @@ for (int n : nums) {
 
 **Use when:** DFS, balanced parentheses, monotonic stack, undo/backtracking.
 **Never use `java.util.Stack`** — it's legacy, synchronized, and slow. Use `ArrayDeque`.
+> The stack here is the same call stack recursion uses implicitly — see
+> [recursion.md](recursion.md) for when to make it explicit (deep recursion,
+> overflow risk) and for the DFS/backtracking/divide-and-conquer skeletons.
 
 ### Core Operations — All O(1)
 

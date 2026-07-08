@@ -13,8 +13,10 @@ topic: dsa
 > and start looking like one puzzle wearing 40 hats.
 
 See also [data-structures.md](data-structures.md) for the array/list/heap
-foundations these build on, and [patterns.md](patterns.md) for the DFS/BFS
-patterns in context. There's an interactive companion —
+foundations these build on, [recursion.md](recursion.md) for the call-stack
+mental model behind the "three lines" every traversal uses, and
+[patterns.md](patterns.md) for the DFS/BFS patterns in context. There's an
+interactive companion —
 [the Binary Trees guide](../../guides/binary-trees.html) — that steps through the
 four traversal orders and BST search visually.
 
