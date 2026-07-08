@@ -166,6 +166,47 @@ body::after {
   font-size: 13px;
 }
 
+/* Rouge syntax highlighting (dark palette tuned to the theme).
+   Kramdown wraps fenced blocks in .highlighter-rouge / .highlight. */
+.prose .highlighter-rouge .highlight,
+.prose .highlight { background: none; }
+
+.prose .highlight .c,  .prose .highlight .cm, .prose .highlight .c1,
+.prose .highlight .cd, .prose .highlight .cp, .prose .highlight .cs {
+  color: var(--text-muted); font-style: italic;      /* comments */
+}
+.prose .highlight .k,  .prose .highlight .kd, .prose .highlight .kn,
+.prose .highlight .kp, .prose .highlight .kr, .prose .highlight .kv {
+  color: #e39ff6;                                     /* keywords */
+}
+.prose .highlight .kt, .prose .highlight .nc, .prose .highlight .nn,
+.prose .highlight .nb, .prose .highlight .no {
+  color: #7ee0c0;                                     /* types / classes */
+}
+.prose .highlight .nf, .prose .highlight .fm {
+  color: #82b4ff;                                     /* function / method names */
+}
+.prose .highlight .nd, .prose .highlight .nl {
+  color: var(--accent);                               /* annotations / labels */
+}
+.prose .highlight .s,  .prose .highlight .s1, .prose .highlight .s2,
+.prose .highlight .sb, .prose .highlight .sc, .prose .highlight .sd,
+.prose .highlight .se, .prose .highlight .sh, .prose .highlight .si,
+.prose .highlight .sx, .prose .highlight .sr, .prose .highlight .ss {
+  color: #b5e853;                                     /* strings */
+}
+.prose .highlight .m,  .prose .highlight .mi, .prose .highlight .mf,
+.prose .highlight .mh, .prose .highlight .mo, .prose .highlight .mb,
+.prose .highlight .il, .prose .highlight .kc {
+  color: #f0a868;                                     /* numbers / true/false/null */
+}
+.prose .highlight .o,  .prose .highlight .ow {
+  color: #9aa0aa;                                     /* operators */
+}
+.prose .highlight .p  { color: var(--text-secondary); }  /* punctuation */
+.prose .highlight .na { color: var(--text-primary); }    /* attribute names */
+.prose .highlight .err { color: inherit; background: none; }
+
 /* Tables */
 .prose table {
   width: 100%;
